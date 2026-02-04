@@ -19,19 +19,19 @@ type TabType = 'login' | 'register';
 
 export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, onOpenChange }) => {
   const navigate = useNavigate();
-  const { login, demoLogin, loginWithGoogle, signup } = useAuth();
-  
+  const { login, demoLogin, loginWithGoogle, signupBusiness } = useAuth();
+
   const [activeTab, setActiveTab] = useState<TabType>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  
+
   // Register form state
   const [selectedRole, setSelectedRole] = useState<BusinessRole | null>(null);
   const [registerName, setRegisterName] = useState('');
@@ -78,7 +78,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     try {
       await login(loginEmail, loginPassword);
       onOpenChange(false);
@@ -112,7 +112,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedRole) {
       setError('Please select a business role to continue.');
       return;
@@ -128,19 +128,24 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
       setError('Please meet all password requirements.');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
-      await signup(registerName, registerEmail, registerPassword);
-      
+      await signupBusiness(registerName,
+        registerEmail,
+        registerPassword,
+        registerConfirmPassword,
+        selectedRole,
+        registerBusinessName);
+
       const dashboardRoutes: Record<BusinessRole, string> = {
         'vendor': '/vendor/dashboard',
         'event-planner': '/vendor/dashboard',
         'freelance-planner': '/vendor/dashboard'
       };
-      
+
       onOpenChange(false);
       navigate(dashboardRoutes[selectedRole]);
     } catch (err: any) {
@@ -160,13 +165,13 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
     setError('');
     try {
       await loginWithGoogle();
-      
+
       const dashboardRoutes: Record<BusinessRole, string> = {
         'vendor': '/vendor/dashboard',
         'event-planner': '/vendor/dashboard',
         'freelance-planner': '/vendor/dashboard'
       };
-      
+
       onOpenChange(false);
       navigate(dashboardRoutes[selectedRole]);
     } catch (error) {
@@ -212,7 +217,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
             {activeTab === 'login' ? 'Sign in to access your dashboard' : 'Join EventFlow and grow your business'}
           </DialogDescription>
         </VisuallyHidden>
-        
+
         <div className="p-10">
           {/* Header with Icon */}
           <div className="mb-8">
@@ -221,7 +226,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                 <Briefcase className="h-7 w-7 text-gray-600" />
               </div>
             </div>
-            
+
             <h2 className="text-center text-gray-900 mb-2">
               {activeTab === 'login' ? 'Business Login' : 'Create Business Account'}
             </h2>
@@ -234,21 +239,19 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => handleTabChange('login')}
-              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${
-                activeTab === 'login'
+              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${activeTab === 'login'
                   ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Login
             </button>
             <button
               onClick={() => handleTabChange('register')}
-              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${
-                activeTab === 'register'
+              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${activeTab === 'register'
                   ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Sign Up
             </button>
@@ -356,24 +359,24 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     />
                   </svg>
                 </button>
-                
+
                 <button
                   type="button"
                   disabled={socialLoading || isLoading}
                   className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   <svg className="h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </button>
-                
+
                 <button
                   type="button"
                   disabled={socialLoading || isLoading}
                   className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                   </svg>
                 </button>
               </div>
@@ -408,27 +411,24 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                       key={role.id}
                       type="button"
                       onClick={() => setSelectedRole(role.id)}
-                      className={`p-4 border-2 rounded-xl transition-all text-left ${
-                        selectedRole === role.id
+                      className={`p-4 border-2 rounded-xl transition-all text-left ${selectedRole === role.id
                           ? role.activeColor
                           : role.color
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                          selectedRole === role.id ? 'bg-white/50' : 'bg-gray-50'
-                        }`}>
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${selectedRole === role.id ? 'bg-white/50' : 'bg-gray-50'
+                          }`}>
                           <role.icon className="h-5 w-5 text-[#16232A]" />
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold text-[#16232A]">{role.title}</h4>
                           <p className="text-xs text-gray-600">{role.description}</p>
                         </div>
-                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedRole === role.id
+                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${selectedRole === role.id
                             ? 'border-gray-900 bg-gray-900'
                             : 'border-gray-300'
-                        }`}>
+                          }`}>
                           {selectedRole === role.id && (
                             <div className="h-2 w-2 bg-white rounded-full" />
                           )}
@@ -583,24 +583,24 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     />
                   </svg>
                 </button>
-                
+
                 <button
                   type="button"
                   disabled={socialLoading || isLoading || !selectedRole}
                   className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   <svg className="h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </button>
-                
+
                 <button
                   type="button"
                   disabled={socialLoading || isLoading || !selectedRole}
                   className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                   </svg>
                 </button>
               </div>

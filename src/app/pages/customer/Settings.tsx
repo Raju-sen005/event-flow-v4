@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import {
   User,
@@ -10,9 +10,19 @@ import {
   LogOut,
   Save
 } from 'lucide-react';
+import axios from "axios";
 
 export const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [profile, setProfile] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    bio: "",
+  });
+
+  const [loading, setLoading] = useState(true);
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -21,6 +31,79 @@ export const Settings: React.FC = () => {
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'preferences', label: 'Preferences', icon: Globe },
   ];
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          "http://localhost:5000/api/customer/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setProfile({
+          firstName: res.data.firstName,
+          lastName: res.data.lastName,
+          email: res.data.email || "", // agar users table se aaye
+          phone: res.data.phone || "",
+          bio: res.data.bio || "",
+        });
+
+      } catch (err: any) {
+        // Agar profile nahi hai → create flow
+        if (err.response?.status === 404) {
+          setProfile((prev) => prev);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+
+  const handleSaveProfile = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.put(
+      "http://localhost:5000/api/customer/profile",
+      {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        bio: profile.bio,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Profile updated successfully");
+
+  } catch (err: any) {
+    // Agar profile exist nahi karti → create
+    if (err.response?.status === 404) {
+      await axios.post(
+        "http://localhost:5000/api/customer/profile",
+        profile,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      alert("Profile created successfully");
+    }
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -38,11 +121,10 @@ export const Settings: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-[#FF5B04] text-white'
-                    : 'text-[#16232A] hover:bg-gray-50'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
+                  ? 'bg-[#FF5B04] text-white'
+                  : 'text-[#16232A] hover:bg-gray-50'
+                  }`}
               >
                 <tab.icon className="h-5 w-5" />
                 <span className="font-medium">{tab.label}</span>
@@ -57,7 +139,7 @@ export const Settings: React.FC = () => {
           {activeTab === 'profile' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-6">
               <h2 className="text-xl font-bold text-[#16232A]">Profile Information</h2>
-              
+
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -66,7 +148,10 @@ export const Settings: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      defaultValue="John"
+                      value={profile.firstName}
+                      onChange={(e) =>
+                        setProfile({ ...profile, firstName: e.target.value })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
                     />
                   </div>
@@ -76,7 +161,10 @@ export const Settings: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      defaultValue="Doe"
+                      value={profile.lastName}
+                      onChange={(e) =>
+                        setProfile({ ...profile, lastName: e.target.value })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
                     />
                   </div>
@@ -88,7 +176,10 @@ export const Settings: React.FC = () => {
                   </label>
                   <input
                     type="email"
-                    defaultValue="john.doe@example.com"
+                    value={profile.email}
+                    onChange={(e) =>
+                      setProfile({ ...profile, email: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
                   />
                 </div>
@@ -99,7 +190,10 @@ export const Settings: React.FC = () => {
                   </label>
                   <input
                     type="tel"
-                    defaultValue="+1 (555) 123-4567"
+                    value={profile.phone}
+                    onChange={(e) =>
+                      setProfile({ ...profile, phone: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
                   />
                 </div>
@@ -110,14 +204,17 @@ export const Settings: React.FC = () => {
                   </label>
                   <textarea
                     rows={4}
-                    defaultValue="Event planner and organizer"
+                    value={profile.bio}
+                    onChange={(e) =>
+                      setProfile({ ...profile, bio: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
+                <Button onClick={handleSaveProfile} className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
                 </Button>
@@ -129,7 +226,7 @@ export const Settings: React.FC = () => {
           {activeTab === 'notifications' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-6">
               <h2 className="text-xl font-bold text-[#16232A]">Notification Preferences</h2>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
@@ -189,7 +286,7 @@ export const Settings: React.FC = () => {
           {activeTab === 'security' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-6">
               <h2 className="text-xl font-bold text-[#16232A]">Security Settings</h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#16232A] mb-2">
@@ -253,7 +350,7 @@ export const Settings: React.FC = () => {
           {activeTab === 'billing' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-6">
               <h2 className="text-xl font-bold text-[#16232A]">Billing & Payment</h2>
-              
+
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-[#16232A]/70">
                   Payment methods and billing history will be available here
@@ -266,7 +363,7 @@ export const Settings: React.FC = () => {
           {activeTab === 'preferences' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-6">
               <h2 className="text-xl font-bold text-[#16232A]">General Preferences</h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#16232A] mb-2">

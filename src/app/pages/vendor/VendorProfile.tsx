@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   User, 
@@ -23,6 +23,9 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { VendorKYC } from '../../components/vendor/VendorKYC';
+import axios from "axios";
+
+const API_URL = "http://localhost:5000/api/vendor/profile";
 
 interface VendorProfile {
   businessName: string;
@@ -86,15 +89,54 @@ export const VendorProfile: React.FC = () => {
     setIsEditingProfile(true);
   };
 
-  const handleSaveProfile = () => {
-    setVendorProfile(editedProfile);
-    setIsEditingProfile(false);
-  };
+  // const handleSaveProfile = () => {
+  //   setVendorProfile(editedProfile);
+  //   setIsEditingProfile(false);
+  // };
 
   const handleCancelEditProfile = () => {
     setEditedProfile(vendorProfile);
     setIsEditingProfile(false);
   };
+
+  useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setVendorProfile(res.data);
+      setEditedProfile(res.data);
+    } catch (err) {
+      console.error("Failed to load vendor profile");
+    }
+  };
+
+  fetchProfile();
+}, []);
+
+const handleSaveProfile = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.put(API_URL, editedProfile, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setVendorProfile(editedProfile);
+    setIsEditingProfile(false);
+    alert("Profile updated successfully");
+  } catch (err) {
+    alert("Failed to update profile");
+  }
+};
 
   return (
     <div className="space-y-6">

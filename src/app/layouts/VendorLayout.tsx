@@ -26,9 +26,19 @@ import {
   TrendingUp,
   HeadphonesIcon
 } from 'lucide-react';
+// import { useAuth } from "@/app/context/AuthContext";
+const roleLabelMap: Record<string, string> = {
+  vendor: "Vendor",
+  "event-planner": "Event Planner",
+  "freelance-planner": "Freelance Planner",
+  admin: "Admin",
+  customer: "Customer",
+};
 
 export const VendorLayout: React.FC = () => {
-  const { user, logout, isDemo } = useAuth();
+  const { user, logout } = useAuth();
+  // const { user } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,7 +50,7 @@ export const VendorLayout: React.FC = () => {
   };
 
   const navigation = [
-    { 
+    {
       category: 'MAIN',
       items: [
         { name: 'Dashboard', href: '/vendor/dashboard', icon: Home },
@@ -92,7 +102,10 @@ export const VendorLayout: React.FC = () => {
                 <Briefcase className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-[#16232A]">EventFlow</span>
-              <span className="hidden sm:inline text-sm text-[#075056] font-medium">Vendor</span>
+              <span className="hidden sm:inline text-sm text-[#075056] font-medium">
+                {user ? roleLabelMap[user.role] : ""}
+              </span>
+
             </Link>
           </div>
 
@@ -115,9 +128,9 @@ export const VendorLayout: React.FC = () => {
             <div className="hidden md:flex items-center gap-3 pl-3 border-l border-gray-200">
               <div className="text-right">
                 <p className="font-medium text-[#16232A]">{user?.name}</p>
-                {isDemo && (
+                {/* {isDemo && (
                   <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Demo</span>
-                )}
+                )} */}
               </div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
@@ -129,9 +142,8 @@ export const VendorLayout: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed top-14 left-0 bottom-0 z-30 w-64 bg-white border-r border-gray-200 transition-transform duration-300 overflow-y-auto ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed top-14 left-0 bottom-0 z-30 w-64 bg-white border-r border-gray-200 transition-transform duration-300 overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
       >
         <nav className="p-4 space-y-6">
           {navigation.map((section, sectionIndex) => (
@@ -147,11 +159,10 @@ export const VendorLayout: React.FC = () => {
                       key={item.name}
                       to={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                        active
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${active
                           ? 'bg-[#075056] text-white font-medium'
                           : 'text-gray-700 hover:bg-gray-50 font-normal'
-                      }`}
+                        }`}
                     >
                       <item.icon className={`h-[18px] w-[18px] flex-shrink-0 ${active ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                       {item.name}
@@ -171,11 +182,10 @@ export const VendorLayout: React.FC = () => {
               <Link
                 to="/vendor/support"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  isActive('/vendor/support')
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive('/vendor/support')
                     ? 'bg-[#075056] text-white font-medium'
                     : 'text-gray-700 hover:bg-gray-50 font-normal'
-                }`}
+                  }`}
               >
                 <HeadphonesIcon className={`h-[18px] w-[18px] flex-shrink-0 ${isActive('/vendor/support') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                 Support
@@ -183,11 +193,10 @@ export const VendorLayout: React.FC = () => {
               <Link
                 to="/vendor/availability"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  isActive('/vendor/availability')
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive('/vendor/availability')
                     ? 'bg-[#075056] text-white font-medium'
                     : 'text-gray-700 hover:bg-gray-50 font-normal'
-                }`}
+                  }`}
               >
                 <Calendar className={`h-[18px] w-[18px] flex-shrink-0 ${isActive('/vendor/availability') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                 Availability
@@ -195,11 +204,10 @@ export const VendorLayout: React.FC = () => {
               <Link
                 to="/vendor/settings"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  isActive('/vendor/settings')
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive('/vendor/settings')
                     ? 'bg-[#075056] text-white font-medium'
                     : 'text-gray-700 hover:bg-gray-50 font-normal'
-                }`}
+                  }`}
               >
                 <Settings className={`h-[18px] w-[18px] flex-shrink-0 ${isActive('/vendor/settings') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                 Settings
