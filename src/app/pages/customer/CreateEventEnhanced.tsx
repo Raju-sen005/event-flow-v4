@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +29,7 @@ import {
   AlertCircle,
   Plus
 } from 'lucide-react';
+import api from '../../lib/api';
 
 // Event category type
 type EventCategory = {
@@ -41,13 +42,27 @@ type EventCategory = {
 // Event management mode type
 type ManagementMode = 'self-managed' | 'planner-managed' | null;
 
-// Service type
-type Service = {
-  id: string;
+// Category type (mannually)
+type Category = {
+  id: number;
   name: string;
-  icon: React.ElementType;
-  category: string;
+  description?: string;
 };
+
+
+type SubCategory = {
+  id: number;
+  name: string;
+  category_id: string;
+};
+
+// Service type
+// type Service = {
+//   id: string;
+//   name: string;
+//   icon: React.ElementType;
+//   category: string;
+// };
 
 // Event form data
 type EventFormData = {
@@ -60,80 +75,54 @@ type EventFormData = {
   notes: string;
 };
 
+
 // Event categories
-const EVENT_CATEGORIES: EventCategory[] = [
-  {
-    id: 'wedding',
-    name: 'Wedding',
-    icon: Heart,
-    description: 'Make your special day unforgettable'
-  },
-  {
-    id: 'birthday',
-    name: 'Birthday Party',
-    icon: Cake,
-    description: 'Celebrate another year in style'
-  },
-  {
-    id: 'corporate',
-    name: 'Corporate Event',
-    icon: Briefcase,
-    description: 'Professional events and conferences'
-  },
-  {
-    id: 'anniversary',
-    name: 'Anniversary',
-    icon: Gift,
-    description: 'Commemorate your milestone'
-  },
-  {
-    id: 'other',
-    name: 'Other / Custom',
-    icon: PartyPopper,
-    description: 'Any other special occasion'
-  }
-];
+// const EVENT_CATEGORIES: EventCategory[] = [
+
+// ];
+
+
 
 // Available services by category
-const SERVICES_BY_CATEGORY: Record<string, Service[]> = {
-  wedding: [
-    { id: 'photographer', name: 'Photographer', icon: Camera, category: 'wedding' },
-    { id: 'videographer', name: 'Videographer', icon: Video, category: 'wedding' },
-    { id: 'catering', name: 'Catering', icon: Utensils, category: 'wedding' },
-    { id: 'dj', name: 'DJ / Music', icon: Music, category: 'wedding' },
-    { id: 'makeup', name: 'Makeup Artist', icon: Sparkles, category: 'wedding' },
-    { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'wedding' },
-    { id: 'venue', name: 'Venue', icon: Building2, category: 'wedding' }
-  ],
-  birthday: [
-    { id: 'photographer', name: 'Photographer', icon: Camera, category: 'birthday' },
-    { id: 'catering', name: 'Catering', icon: Utensils, category: 'birthday' },
-    { id: 'entertainment', name: 'Entertainment', icon: Music, category: 'birthday' },
-    { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'birthday' },
-    { id: 'venue', name: 'Venue', icon: Building2, category: 'birthday' }
-  ],
-  corporate: [
-    { id: 'photographer', name: 'Photographer', icon: Camera, category: 'corporate' },
-    { id: 'videographer', name: 'Videographer', icon: Video, category: 'corporate' },
-    { id: 'catering', name: 'Catering', icon: Utensils, category: 'corporate' },
-    { id: 'av', name: 'Audio/Visual', icon: Music, category: 'corporate' },
-    { id: 'venue', name: 'Venue', icon: Building2, category: 'corporate' }
-  ],
-  anniversary: [
-    { id: 'photographer', name: 'Photographer', icon: Camera, category: 'anniversary' },
-    { id: 'catering', name: 'Catering', icon: Utensils, category: 'anniversary' },
-    { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'anniversary' },
-    { id: 'venue', name: 'Venue', icon: Building2, category: 'anniversary' }
-  ],
-  other: [
-    { id: 'photographer', name: 'Photographer', icon: Camera, category: 'other' },
-    { id: 'videographer', name: 'Videographer', icon: Video, category: 'other' },
-    { id: 'catering', name: 'Catering', icon: Utensils, category: 'other' },
-    { id: 'entertainment', name: 'Entertainment', icon: Music, category: 'other' },
-    { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'other' },
-    { id: 'venue', name: 'Venue', icon: Building2, category: 'other' }
-  ]
-};
+// const SERVICES_BY_CATEGORY: Record<string, Service[]> = {
+//   wedding: [
+//     { id: 'photographer', name: 'Photographer', icon: Camera, category: 'wedding' },
+//     { id: 'videographer', name: 'Videographer', icon: Video, category: 'wedding' },
+//     { id: 'catering', name: 'Catering', icon: Utensils, category: 'wedding' },
+//     { id: 'dj', name: 'DJ / Music', icon: Music, category: 'wedding' },
+//     { id: 'makeup', name: 'Makeup Artist', icon: Sparkles, category: 'wedding' },
+//     { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'wedding' },
+//     { id: 'venue', name: 'Venue', icon: Building2, category: 'wedding' }
+//   ],
+//   birthday: [
+//     { id: 'photographer', name: 'Photographer', icon: Camera, category: 'birthday' },
+//     { id: 'catering', name: 'Catering', icon: Utensils, category: 'birthday' },
+//     { id: 'entertainment', name: 'Entertainment', icon: Music, category: 'birthday' },
+//     { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'birthday' },
+//     { id: 'venue', name: 'Venue', icon: Building2, category: 'birthday' }
+//   ],
+//   corporate: [
+//     { id: 'photographer', name: 'Photographer', icon: Camera, category: 'corporate' },
+//     { id: 'videographer', name: 'Videographer', icon: Video, category: 'corporate' },
+//     { id: 'catering', name: 'Catering', icon: Utensils, category: 'corporate' },
+//     { id: 'av', name: 'Audio/Visual', icon: Music, category: 'corporate' },
+//     { id: 'venue', name: 'Venue', icon: Building2, category: 'corporate' }
+//   ],
+//   anniversary: [
+//     { id: 'photographer', name: 'Photographer', icon: Camera, category: 'anniversary' },
+//     { id: 'catering', name: 'Catering', icon: Utensils, category: 'anniversary' },
+//     { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'anniversary' },
+//     { id: 'venue', name: 'Venue', icon: Building2, category: 'anniversary' }
+//   ],
+//   other: [
+//     { id: 'photographer', name: 'Photographer', icon: Camera, category: 'other' },
+//     { id: 'videographer', name: 'Videographer', icon: Video, category: 'other' },
+//     { id: 'catering', name: 'Catering', icon: Utensils, category: 'other' },
+//     { id: 'entertainment', name: 'Entertainment', icon: Music, category: 'other' },
+//     { id: 'decor', name: 'Decoration', icon: PartyPopper, category: 'other' },
+//     { id: 'venue', name: 'Venue', icon: Building2, category: 'other' }
+//   ]
+// };
 
 export const CreateEventEnhanced: React.FC = () => {
   const navigate = useNavigate();
@@ -145,24 +134,29 @@ export const CreateEventEnhanced: React.FC = () => {
   const [showManagementConfirmModal, setShowManagementConfirmModal] = useState(false);
   const [showFinalConfirmModal, setShowFinalConfirmModal] = useState(false);
   const [pendingMode, setPendingMode] = useState<ManagementMode>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+const [services, setServices] = useState<SubCategory[]>([]);
+const [loadingServices, setLoadingServices] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    trigger
-  } = useForm<EventFormData>();
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+  watch,
+  trigger
+} = useForm<EventFormData>();
 
-  const formData = watch();
+const formData = watch();
 
   const totalSteps = 6;
 
   // Get services for selected category
-  const availableServices = selectedCategory ? SERVICES_BY_CATEGORY[selectedCategory] || [] : [];
+  // const availableServices = selectedCategory ? SERVICES_BY_CATEGORY[selectedCategory] || [] : [];
 
   // Handle category selection
   const handleCategorySelect = (categoryId: string) => {
+    console.log(categoryId)
     setSelectedCategory(categoryId);
   };
 
@@ -180,11 +174,12 @@ export const CreateEventEnhanced: React.FC = () => {
   };
 
   // Toggle service selection
-  const toggleService = (serviceId: string) => {
+  const toggleService = (serviceId: number, serviceName: string) => {
+    const serviceIdStr = String(serviceName);
     setSelectedServices(prev =>
-      prev.includes(serviceId)
-        ? prev.filter(id => id !== serviceId)
-        : [...prev, serviceId]
+      prev.includes(serviceIdStr)
+        ? prev.filter(id => id !== serviceIdStr)
+        : [...prev, serviceIdStr]
     );
   };
 
@@ -201,30 +196,40 @@ export const CreateEventEnhanced: React.FC = () => {
     setShowFinalConfirmModal(true);
   };
 
-  const confirmEventCreation = () => {
-    // Get form data
-    const data = formData;
-    
-    // In production, save to backend
-    const eventData = {
-      ...data,
-      category: selectedCategory,
-      managementMode,
-      services: selectedServices,
-      createdAt: new Date().toISOString()
+ const confirmEventCreation = async () => {
+  try {
+    const payload = {
+      name: formData.name,
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      location: formData.location,
+      budget: formData.budget ? Number(formData.budget) : null,
+      notes: formData.notes,
+      category_id: selectedCategory,
+      management_mode: managementMode,
+      services: selectedServices
     };
 
-    console.log('Creating event:', eventData);
+    const res = await api.post("/api/events", payload);
+
+    const eventId = res.data.event_id; // 🔥 backend se aaya
 
     setShowFinalConfirmModal(false);
 
-    // Navigate based on management mode
-    if (managementMode === 'self-managed') {
-      navigate('/customer/events/1/vendor-selection'); // Event with vendor selection
+    // ✅ dynamic navigation
+    if (managementMode === "self-managed") {
+      navigate(`/customer/events/${eventId}/vendor-selection`);
     } else {
-      navigate('/customer/events/1'); // Event with planner selection
+      navigate(`/customer/events/${eventId}`);
     }
-  };
+
+  } catch (error) {
+    console.error("Create event failed", error);
+    alert("Event create failed");
+  }
+};
+
 
   // Navigation helpers
   const goToNextStep = () => {
@@ -255,6 +260,7 @@ export const CreateEventEnhanced: React.FC = () => {
       case 2:
         return (
           <Step2CategorySelection
+            categories={categories}
             selectedCategory={selectedCategory}
             onSelect={handleCategorySelect}
             onContinue={goToNextStep}
@@ -271,7 +277,7 @@ export const CreateEventEnhanced: React.FC = () => {
         return (
           <Step4ServiceSelection
             managementMode={managementMode}
-            services={availableServices}
+            services={services}
             selectedServices={selectedServices}
             onToggle={toggleService}
             customService={customService}
@@ -279,6 +285,7 @@ export const CreateEventEnhanced: React.FC = () => {
             onAddCustom={addCustomService}
             onContinue={goToNextStep}
           />
+
         );
       case 5:
         return (
@@ -292,17 +299,64 @@ export const CreateEventEnhanced: React.FC = () => {
         return (
           <Step6Review
             category={selectedCategory}
+            categories={categories}
             managementMode={managementMode}
             services={selectedServices}
             formData={formData}
             onEdit={() => setCurrentStep(5)}
             onSubmit={handleSubmit(onSubmit)}
           />
+
         );
       default:
         return null;
     }
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/admin/category-list");
+        setCategories(res.data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+
+
+
+  useEffect(() => {
+    if (!selectedCategory) return;
+
+    const fetchServices = async () => {
+      try {
+        setLoadingServices(true);
+        const res = await api.get(
+          `/admin/subcategories/category/${selectedCategory}`
+        );
+        setServices(res.data.data); // ⚠️ array hona chahiye
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+
+    fetchServices();
+  }, [selectedCategory]);
+
+  if (loadingCategories) {
+    return <div>Loading categories...</div>;
+  }
+  if (loadingServices) {
+    return <div>Loading services...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#E4EEF0] py-8">
@@ -491,10 +545,11 @@ const Step1EntryScreen: React.FC<{ onContinue: () => void }> = ({ onContinue }) 
 
 // Step 2: Category Selection
 const Step2CategorySelection: React.FC<{
-  selectedCategory: string | null;
+  categories: Category[];
+  selectedCategory: number | null;
   onSelect: (id: string) => void;
   onContinue: () => void;
-}> = ({ selectedCategory, onSelect, onContinue }) => {
+}> = ({ categories, selectedCategory, onSelect, onContinue }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
@@ -507,52 +562,22 @@ const Step2CategorySelection: React.FC<{
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-8">
-        {EVENT_CATEGORIES.map((category) => {
-          const Icon = category.icon;
+        {categories.map((category) => {
           const isSelected = selectedCategory === category.id;
 
           return (
             <motion.button
               key={category.id}
               onClick={() => onSelect(category.id)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`relative p-6 rounded-xl border-2 transition-all text-left ${
-                isSelected
-                  ? 'border-[#FF5B04] bg-[#FF5B04]/5'
-                  : 'border-gray-200 hover:border-[#FF5B04]/30'
-              }`}
+              className={`p-6 rounded-xl border-2 ${isSelected ? "border-[#FF5B04] bg-[#FF5B04]/5" : "border-gray-200"
+                }`}
             >
-              <div className="flex items-start gap-4">
-                <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                    isSelected ? 'bg-[#FF5B04]' : 'bg-[#E4EEF0]'
-                  }`}
-                >
-                  <Icon
-                    className={`h-7 w-7 ${isSelected ? 'text-white' : 'text-[#16232A]'}`}
-                  />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-[#16232A] text-lg mb-1">
-                    {category.name}
-                  </h3>
-                  <p className="text-sm text-[#16232A]/60">{category.description}</p>
-                </div>
-              </div>
-
-              {isSelected && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-4 right-4 w-6 h-6 bg-[#FF5B04] rounded-full flex items-center justify-center"
-                >
-                  <Check className="h-4 w-4 text-white" />
-                </motion.div>
-              )}
+              <h3 className="text-lg font-semibold">{category.name}</h3>
+              <p className="text-sm text-gray-500">{category.description}</p>
             </motion.button>
           );
         })}
+
       </div>
 
       <div className="flex justify-end">
@@ -600,22 +625,19 @@ const Step3ManagementMode: React.FC<{
           onClick={() => onSelect('self-managed')}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          className={`w-full p-6 rounded-xl border-2 transition-all text-left ${
-            selectedMode === 'self-managed'
-              ? 'border-[#FF5B04] bg-[#FF5B04]/5'
-              : 'border-gray-200 hover:border-[#FF5B04]/30'
-          }`}
+          className={`w-full p-6 rounded-xl border-2 transition-all text-left ${selectedMode === 'self-managed'
+            ? 'border-[#FF5B04] bg-[#FF5B04]/5'
+            : 'border-gray-200 hover:border-[#FF5B04]/30'
+            }`}
         >
           <div className="flex items-start gap-4">
             <div
-              className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                selectedMode === 'self-managed' ? 'bg-[#FF5B04]' : 'bg-[#E4EEF0]'
-              }`}
+              className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${selectedMode === 'self-managed' ? 'bg-[#FF5B04]' : 'bg-[#E4EEF0]'
+                }`}
             >
               <UserCheck
-                className={`h-7 w-7 ${
-                  selectedMode === 'self-managed' ? 'text-white' : 'text-[#16232A]'
-                }`}
+                className={`h-7 w-7 ${selectedMode === 'self-managed' ? 'text-white' : 'text-[#16232A]'
+                  }`}
               />
             </div>
             <div className="flex-1">
@@ -641,22 +663,19 @@ const Step3ManagementMode: React.FC<{
           onClick={() => onSelect('planner-managed')}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          className={`w-full p-6 rounded-xl border-2 transition-all text-left ${
-            selectedMode === 'planner-managed'
-              ? 'border-[#075056] bg-[#075056]/5'
-              : 'border-gray-200 hover:border-[#075056]/30'
-          }`}
+          className={`w-full p-6 rounded-xl border-2 transition-all text-left ${selectedMode === 'planner-managed'
+            ? 'border-[#075056] bg-[#075056]/5'
+            : 'border-gray-200 hover:border-[#075056]/30'
+            }`}
         >
           <div className="flex items-start gap-4">
             <div
-              className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                selectedMode === 'planner-managed' ? 'bg-[#075056]' : 'bg-[#E4EEF0]'
-              }`}
+              className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${selectedMode === 'planner-managed' ? 'bg-[#075056]' : 'bg-[#E4EEF0]'
+                }`}
             >
               <Sparkles
-                className={`h-7 w-7 ${
-                  selectedMode === 'planner-managed' ? 'text-white' : 'text-[#16232A]'
-                }`}
+                className={`h-7 w-7 ${selectedMode === 'planner-managed' ? 'text-white' : 'text-[#16232A]'
+                  }`}
               />
             </div>
             <div className="flex-1">
@@ -703,9 +722,10 @@ const Step3ManagementMode: React.FC<{
 // Step 4: Service Selection
 const Step4ServiceSelection: React.FC<{
   managementMode: ManagementMode;
-  services: Service[];
+  services: SubCategory[];
+
   selectedServices: string[];
-  onToggle: (id: string) => void;
+  onToggle: (id: number, name: string) => void;
   customService: string;
   onCustomServiceChange: (value: string) => void;
   onAddCustom: () => void;
@@ -720,157 +740,153 @@ const Step4ServiceSelection: React.FC<{
   onAddCustom,
   onContinue
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
+    const [showTooltip, setShowTooltip] = useState(false);
 
-  // If planner-managed, skip service selection
-  if (managementMode === 'planner-managed') {
-    return (
-      <div className="bg-white rounded-2xl p-8 border border-gray-200 text-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="w-20 h-20 bg-[#075056]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Sparkles className="h-10 w-10 text-[#075056]" />
+    // If planner-managed, skip service selection
+    if (managementMode === 'planner-managed') {
+      return (
+        <div className="bg-white rounded-2xl p-8 border border-gray-200 text-center">
+          <div className="max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-[#075056]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="h-10 w-10 text-[#075056]" />
+            </div>
+
+            <h2 className="text-3xl font-bold text-[#16232A] mb-4">Services Handled by Planner</h2>
+            <p className="text-lg text-[#16232A]/70 mb-8">
+              Your event planner will manage all services for you.
+            </p>
+
+            <Button
+              onClick={onContinue}
+              className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
+            >
+              Continue
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
           </div>
-
-          <h2 className="text-3xl font-bold text-[#16232A] mb-4">Services Handled by Planner</h2>
-          <p className="text-lg text-[#16232A]/70 mb-8">
-            Your event planner will manage all services for you.
-          </p>
-
-          <Button
-            onClick={onContinue}
-            className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
-          >
-            Continue
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
-    <div className="bg-white rounded-2xl p-8 border border-gray-200">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-[#16232A] mb-2">Select Required Services</h2>
-        <p className="text-[#16232A]/70">
-          Choose the services you need for your event
-        </p>
-      </div>
+    return (
+      <div className="bg-white rounded-2xl p-8 border border-gray-200">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-[#16232A] mb-2">Select Required Services</h2>
+          <p className="text-[#16232A]/70">
+            Choose the services you need for your event
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-3 mb-6">
-        {services.map((service) => {
-          const Icon = service.icon;
-          const isSelected = selectedServices.includes(service.id);
+        <div className="grid md:grid-cols-2 gap-3 mb-6">
+          {services.map((service) => {
+            // const Icon = service.icon;
+            const isSelected = selectedServices.includes(String(service.id));
 
-          return (
-            <motion.button
-              key={service.id}
-              onClick={() => onToggle(service.id)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                isSelected
+            return (
+              <motion.button
+                key={service.id}
+                onClick={() => onToggle(service.id, service.name)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${isSelected
                   ? 'border-[#FF5B04] bg-[#FF5B04]/5'
                   : 'border-gray-200 hover:border-[#FF5B04]/30'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    isSelected ? 'bg-[#FF5B04]' : 'bg-[#E4EEF0]'
                   }`}
-                >
-                  <Icon
-                    className={`h-5 w-5 ${isSelected ? 'text-white' : 'text-[#16232A]'}`}
-                  />
-                </div>
-                <span className="font-medium text-[#16232A]">{service.name}</span>
-                {isSelected && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="ml-auto w-5 h-5 bg-[#FF5B04] rounded-full flex items-center justify-center"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? 'bg-[#FF5B04]' : 'bg-[#E4EEF0]'
+                      }`}
                   >
-                    <Check className="h-3 w-3 text-white" />
-                  </motion.div>
-                )}
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* Add Custom Service */}
-      <div className="border-t border-gray-200 pt-6 mb-8">
-        <h3 className="font-semibold text-[#16232A] mb-3">Add Custom Service</h3>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={customService}
-            onChange={(e) => onCustomServiceChange(e.target.value)}
-            placeholder="Enter service name..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                onAddCustom();
-              }
-            }}
-          />
-          <Button
-            type="button"
-            onClick={onAddCustom}
-            disabled={!customService.trim()}
-            className="bg-[#075056] hover:bg-[#075056]/90 text-white disabled:opacity-50"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add
-          </Button>
+                    {/* <Icon
+                      className={`h-5 w-5 ${isSelected ? 'text-white' : 'text-[#16232A]'}`}
+                    /> */}
+                  </div>
+                  <span className="font-medium text-[#16232A]">{service.name}</span>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="ml-auto w-5 h-5 bg-[#FF5B04] rounded-full flex items-center justify-center"
+                    >
+                      <Check className="h-3 w-3 text-white" />
+                    </motion.div>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
 
-        {/* Show custom services */}
-        {selectedServices.filter(s => s.startsWith('custom-')).length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {selectedServices
-              .filter(s => s.startsWith('custom-'))
-              .map((service) => (
+        {/* Add Custom Service */}
+        <div className="border-t border-gray-200 pt-6 mb-8">
+          <h3 className="font-semibold text-[#16232A] mb-3">Add Custom Service</h3>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={customService}
+              onChange={(e) => onCustomServiceChange(e.target.value)}
+              placeholder="Enter service name..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  onAddCustom();
+                }
+              }}
+            />
+            <Button
+              type="button"
+              onClick={onAddCustom}
+              disabled={!customService.trim()}
+              className="bg-[#075056] hover:bg-[#075056]/90 text-white disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add
+            </Button>
+          </div>
+
+          {/* Show custom services */}
+          {selectedServices.filter(s => s).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedServices.map((service) => (
                 <div
                   key={service}
                   className="px-3 py-1.5 bg-[#075056]/10 text-[#075056] rounded-full text-sm font-medium flex items-center gap-2"
                 >
-                  {service.replace('custom-', '')}
+                  {service}
                   <button
-                    onClick={() => onToggle(service)}
+                    onClick={() => onToggle(id, name)}
                     className="hover:text-[#075056]/70"
                   >
                     ×
                   </button>
                 </div>
               ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
 
-      <div className="flex justify-end">
-        <div
-          onMouseEnter={() => selectedServices.length === 0 && setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-        >
-          <Tooltip text="Select at least one service for your event" show={selectedServices.length === 0 && showTooltip}>
-            <Button
-              onClick={onContinue}
-              disabled={selectedServices.length === 0}
-              className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Tooltip>
+        <div className="flex justify-end">
+          <div
+            onMouseEnter={() => selectedServices.length === 0 && setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            <Tooltip text="Select at least one service for your event" show={selectedServices.length === 0 && showTooltip}>
+              <Button
+                onClick={onContinue}
+                disabled={selectedServices.length === 0}
+                className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continue
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Tooltip>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 // Step 5: Event Details Form
 const Step5EventDetails: React.FC<{
@@ -899,9 +915,8 @@ const Step5EventDetails: React.FC<{
               {...register('name', { required: 'Event name is required' })}
               type="text"
               placeholder="e.g., Sarah & John Wedding"
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
           </div>
           {errors.name && (
@@ -923,9 +938,8 @@ const Step5EventDetails: React.FC<{
               {...register('date', { required: 'Event date is required' })}
               type="date"
               min={new Date().toISOString().split('T')[0]}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${
-                errors.date ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${errors.date ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
           </div>
           {errors.date && (
@@ -947,9 +961,8 @@ const Step5EventDetails: React.FC<{
               <input
                 {...register('startTime', { required: 'Start time is required' })}
                 type="time"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${
-                  errors.startTime ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${errors.startTime ? 'border-red-500' : 'border-gray-300'
+                  }`}
               />
             </div>
             {errors.startTime && (
@@ -969,9 +982,8 @@ const Step5EventDetails: React.FC<{
               <input
                 {...register('endTime', { required: 'End time is required' })}
                 type="time"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${
-                  errors.endTime ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${errors.endTime ? 'border-red-500' : 'border-gray-300'
+                  }`}
               />
             </div>
             {errors.endTime && (
@@ -994,9 +1006,8 @@ const Step5EventDetails: React.FC<{
               {...register('location', { required: 'Location is required' })}
               type="text"
               placeholder="e.g., New York, NY"
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${
-                errors.location ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] ${errors.location ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
           </div>
           {errors.location && (
@@ -1056,10 +1067,11 @@ const Step6Review: React.FC<{
   managementMode: ManagementMode;
   services: string[];
   formData: EventFormData;
+  categories: Category[];
   onEdit: () => void;
   onSubmit: () => void;
-}> = ({ category, managementMode, services, formData, onEdit, onSubmit }) => {
-  const categoryName = EVENT_CATEGORIES.find(c => c.id === category)?.name || '';
+}> = ({ category, managementMode, services, formData, categories, onEdit, onSubmit }) => {
+  const categoryName = categories.find(c => c._id === category)?.name || '';
 
   return (
     <div className="bg-white rounded-2xl p-8 border border-gray-200">
@@ -1099,7 +1111,7 @@ const Step6Review: React.FC<{
                   key={service}
                   className="px-3 py-1 bg-white text-[#16232A] rounded-full text-sm font-medium"
                 >
-                  {service.startsWith('custom-') ? service.replace('custom-', '') : service}
+                  {service}
                 </span>
               ))}
             </div>
