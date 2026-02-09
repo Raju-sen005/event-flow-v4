@@ -211,7 +211,7 @@ const formData = watch();
       services: selectedServices
     };
 
-    const res = await api.post("/api/events", payload);
+    const res = await api.post("/events", payload);
 
     const eventId = res.data.event_id; // 🔥 backend se aaya
 
