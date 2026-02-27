@@ -25,7 +25,6 @@ import { Button } from '../../components/ui/button';
 import { VendorKYC } from '../../components/vendor/VendorKYC';
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/vendor/profile";
 
 interface VendorProfile {
   businessName: string;
@@ -63,25 +62,45 @@ interface PackageItem {
 }
 
 export const VendorProfile: React.FC = () => {
+  const API_URL = "http://localhost:5000/api/vendor/profile";
   const [activeTab, setActiveTab] = useState<'profile' | 'kyc'>('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
 
   // Vendor profile state
-  const [vendorProfile, setVendorProfile] = useState<VendorProfile>({
-    businessName: 'Elegance Wedding Photography',
-    ownerName: 'Priya Sharma',
-    category: 'Photographer',
-    location: 'Mumbai, Maharashtra',
-    experience: '8 years',
-    phone: '+91 98765 43210',
-    email: 'priya@elegancephoto.com',
-    description: 'We are a premium photography service provider specializing in weddings, corporate events, and special occasions. With over 8 years of experience, we deliver exceptional visual storytelling that captures your most precious moments.',
-    serviceLocations: 'Mumbai, Pune, Goa, Bangalore',
-    rating: 4.8,
-    totalReviews: 127
-  });
+ const emptyProfile: VendorProfile = {
+  businessName: "",
+  ownerName: "",
+  category: "",
+  location: "",
+  experience: "",
+  phone: "",
+  email: "",
+  description: "",
+  serviceLocations: "",
+  rating: 0,
+  totalReviews: 0,
+};
 
-  const [editedProfile, setEditedProfile] = useState<VendorProfile>(vendorProfile);
+const [vendorProfile, setVendorProfile] =
+  useState<VendorProfile>(emptyProfile);
+
+const [editedProfile, setEditedProfile] =
+  useState<VendorProfile>(emptyProfile);
+
+const [profileExists, setProfileExists] = useState(true);
+
+const getUserFromToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  return payload;
+};
+
+
+  // const [editedProfile, setEditedProfile] = useState<VendorProfile>(vendorProfile);
 
   // Profile handlers
   const handleEditProfile = () => {
@@ -99,44 +118,108 @@ export const VendorProfile: React.FC = () => {
     setIsEditingProfile(false);
   };
 
-  useEffect(() => {
+ useEffect(() => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Unauthorized");
+        return;
+      }
 
       const res = await axios.get(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setVendorProfile(res.data);
       setEditedProfile(res.data);
-    } catch (err) {
-      console.error("Failed to load vendor profile");
+      setProfileExists(true);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        // 👇 profile nahi hai → create mode
+        const user = getUserFromToken();
+
+        setEditedProfile({
+          ...emptyProfile,
+          ownerName: user?.name || "",
+          email: user?.email || "",
+          phone: user?.phone || "",
+        });
+
+        setIsEditingProfile(true);
+        setProfileExists(false);
+      } else {
+        setError("Failed to load profile");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   fetchProfile();
 }, []);
 
+
+//   useEffect(() => {
+//   const fetchProfile = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
+
+//       const res = await axios.get(API_URL, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       });
+
+//       setVendorProfile(res.data);
+//       setEditedProfile(res.data);
+//     } catch (err) {
+//       console.error("Failed to load vendor profile");
+//     }
+//   };
+
+//   fetchProfile();
+// }, []);
+
 const handleSaveProfile = async () => {
   try {
     const token = localStorage.getItem("token");
+    if (!token) return alert("Unauthorized");
 
-    await axios.put(API_URL, editedProfile, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
 
-    setVendorProfile(editedProfile);
+    let res;
+
+    if (profileExists) {
+      // UPDATE
+      res = await axios.put(API_URL, editedProfile, config);
+      setVendorProfile(res.data.profile);
+    } else {
+      // CREATE
+      res = await axios.post(API_URL, editedProfile, config);
+      setVendorProfile(res.data.profile);
+      setProfileExists(true);
+    }
+
     setIsEditingProfile(false);
-    alert("Profile updated successfully");
-  } catch (err) {
-    alert("Failed to update profile");
+    alert("Profile saved successfully");
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Save failed");
   }
 };
+
+
+if (loading) {
+  return <p className="text-center text-gray-500">Loading profile...</p>;
+}
+
+if (error) {
+  return <p className="text-center text-red-500">{error}</p>;
+}
+
+
 
   return (
     <div className="space-y-6">

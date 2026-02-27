@@ -37,7 +37,7 @@
 //   const login = async (email: string, password: string) => {
 //     // Simulate API call
 //     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
 //     // Mock user data
 //     setUser({
 //       id: '1',
@@ -51,7 +51,7 @@
 //   const signup = async (name: string, email: string, password: string) => {
 //     // Simulate API call
 //     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
 //     setUser({
 //       id: '1',
 //       email,
@@ -69,7 +69,7 @@
 //   const verifyEmail = async (code: string) => {
 //     // Simulate API call
 //     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
 //     if (user) {
 //       setUser({ ...user, isVerified: true });
 //     }
@@ -185,7 +185,7 @@ interface AuthContextType {
   signupCustomer: (
     name: string,
     email: string,
-    password: string
+    password: string,
   ) => Promise<void>;
 
   signupBusiness: (
@@ -194,12 +194,11 @@ interface AuthContextType {
     password: string,
     confirmPassword: string,
     role: UserRole,
-    businessName: string
+    businessName: string,
   ) => Promise<void>;
 
   logout: () => void;
 }
-
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -214,7 +213,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const { data } = await api.get("/profile");
+        const { data } = await api.get("/customer/profile");
         setUser(data);
       } catch {
         localStorage.removeItem("token");
@@ -227,54 +226,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   // 🔑 LOGIN
-  // 🔑 LOGIN (common)
-const login = async (email: string, password: string) => {
-  const { data } = await api.post("/auth/login", { email, password });
-  localStorage.setItem("token", data.token);
-  setUser(data.user);
-};
+  const login = async (email: string, password: string) => {
+    const { data } = await api.post("/auth/login", { email, password });
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
+  };
 
-// 👤 CUSTOMER REGISTER (SIMPLE)
-const signupCustomer = async (
-  name: string,
-  email: string,
-  password: string
-) => {
-  const { data } = await api.post("/auth/register", {
-    name,
-    email,
-    password,
-    confirmPassword: password,
-    role: "customer",
-    businessName: "N/A",
-  });
+  // 👤 CUSTOMER REGISTER (SIMPLE)
+  const signupCustomer = async (
+    name: string,
+    email: string,
+    password: string,
+  ) => {
+    const { data } = await api.post("/auth/register", {
+      name,
+      email,
+      password,
+      confirmPassword: password,
+      role: "customer",
+      businessName: "N/A",
+    });
 
-  localStorage.setItem("token", data.token);
-  setUser(data.user);
-};
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
+  };
 
-// 🏢 BUSINESS REGISTER (ADVANCED)
-const signupBusiness = async (
-  name: string,
-  email: string,
-  password: string,
-  confirmPassword: string,
-  role: UserRole,
-  businessName: string
-) => {
-  const { data } = await api.post("/auth/register", {
-    name,
-    email,
-    password,
-    confirmPassword,
-    role,
-    businessName,
-  });
+  // 🏢 BUSINESS REGISTER (ADVANCED)
+  const signupBusiness = async (
+    name: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+    role: UserRole,
+    businessName: string,
+  ) => {
+    const { data } = await api.post("/auth/register", {
+      name,
+      email,
+      password,
+      confirmPassword,
+      role,
+      businessName,
+    });
 
-  localStorage.setItem("token", data.token);
-  setUser(data.user);
-};
-
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
+  };
 
   // 🚪 LOGOUT
   const logout = () => {
@@ -284,17 +281,16 @@ const signupBusiness = async (
 
   return (
     <AuthContext.Provider
-  value={{
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    signupCustomer,
-    signupBusiness,
-    logout,
-  }}
->
-
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        signupCustomer,
+        signupBusiness,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

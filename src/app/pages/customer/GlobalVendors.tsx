@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useEffect } from "react";
+import axios from "axios";
 import { motion } from 'motion/react';
 import { EventPickerModal } from '@/app/components/modals/EventPickerModal';
 import {
@@ -44,86 +46,160 @@ export const GlobalVendors: React.FC = () => {
   const [ratingFilter, setRatingFilter] = useState('all');
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [showEventPicker, setShowEventPicker] = useState(false);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+const [loading, setLoading] = useState(false);
 
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    fetchVendors();
+  }, 400);
+
+  return () => clearTimeout(delayDebounce);
+}, [searchQuery, categoryFilter]);
+
+const getPriceRange = (packages: any[]) => {
+  if (!packages || packages.length === 0) return "$";
+
+  const prices = packages.map((p) => Number(p.price));
+  const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+  if (avg < 10000) return "$";
+  if (avg < 30000) return "$$";
+  if (avg < 70000) return "$$$";
+  return "$$$$";
+};
+
+const fetchVendors = async () => {
+  try {
+    setLoading(true);
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/vendors`,
+      {
+        params: {
+          search: searchQuery || undefined,
+          category: categoryFilter !== "all" ? categoryFilter : undefined,
+        },
+      }
+    );
+
+    const apiVendors = response.data.data;
+console.log("API RESPONSE:", response.data);
+    // Transform API response → match frontend Vendor type
+    const formattedVendors: Vendor[] = apiVendors.map((vendor: any) => ({
+      id: vendor.id,
+      name: vendor.businessName,
+      service: vendor.category,
+      category: vendor.category,
+      location: vendor.location,
+      rating: 4.5, // until rating system added
+      reviewCount: 0,
+      priceRange:
+        vendor.packages?.length > 0
+          ? getPriceRange(vendor.packages)
+          : "$",
+     verified: vendor.isVerified || false,
+      portfolio: vendor.portfolios?.length || 0,
+      experienceYears: vendor.experience || 0,
+    }));
+
+    setVendors(formattedVendors);
+  } catch (error) {
+    console.error("Failed to fetch vendors", error);
+  } finally {
+    setLoading(false);
+  }
+};
   // Mock vendors data
-  const vendors: Vendor[] = [
-    {
-      id: '1',
-      name: 'Elite Photography Studio',
-      service: 'Photography',
-      category: 'Photography',
-      location: 'New York, NY',
-      rating: 4.9,
-      reviewCount: 156,
-      priceRange: '$$$',
-      verified: true,
-      portfolio: 250,
-      experienceYears: 8
-    },
-    {
-      id: '2',
-      name: 'Gourmet Catering Co.',
-      service: 'Premium Catering Services',
-      category: 'Catering',
-      location: 'Boston, MA',
-      rating: 4.8,
-      reviewCount: 203,
-      priceRange: '$$$$',
-      verified: true,
-      portfolio: 180,
-      experienceYears: 12
-    },
-    {
-      id: '3',
-      name: 'DJ Beats Entertainment',
-      service: 'DJ & Sound Services',
-      category: 'Music',
-      location: 'Miami, FL',
-      rating: 4.7,
-      reviewCount: 89,
-      priceRange: '$$',
-      verified: true,
-      portfolio: 120,
-      experienceYears: 6
-    },
-    {
-      id: '4',
-      name: 'Cinematic Wedding Films',
-      service: 'Videography',
-      category: 'Videography',
-      location: 'Los Angeles, CA',
-      rating: 5.0,
-      reviewCount: 72,
-      priceRange: '$$$',
-      verified: true,
-      portfolio: 95,
-      experienceYears: 10
-    },
-    {
-      id: '5',
-      name: 'Elegant Event Decor',
-      service: 'Decoration & Design',
-      category: 'Decoration',
-      location: 'Chicago, IL',
-      rating: 4.6,
-      reviewCount: 134,
-      priceRange: '$$',
-      verified: false,
-      portfolio: 200,
-      experienceYears: 7
-    }
-  ];
+  // const vendors: Vendor[] = [
+  //   {
+  //     id: '1',
+  //     name: 'Elite Photography Studio',
+  //     service: 'Photography',
+  //     category: 'Photography',
+  //     location: 'New York, NY',
+  //     rating: 4.9,
+  //     reviewCount: 156,
+  //     priceRange: '$$$',
+  //     verified: true,
+  //     portfolio: 250,
+  //     experienceYears: 8
+  //   },
+  //   {
+  //     id: '2',
+  //     name: 'Gourmet Catering Co.',
+  //     service: 'Premium Catering Services',
+  //     category: 'Catering',
+  //     location: 'Boston, MA',
+  //     rating: 4.8,
+  //     reviewCount: 203,
+  //     priceRange: '$$$$',
+  //     verified: true,
+  //     portfolio: 180,
+  //     experienceYears: 12
+  //   },
+  //   {
+  //     id: '3',
+  //     name: 'DJ Beats Entertainment',
+  //     service: 'DJ & Sound Services',
+  //     category: 'Music',
+  //     location: 'Miami, FL',
+  //     rating: 4.7,
+  //     reviewCount: 89,
+  //     priceRange: '$$',
+  //     verified: true,
+  //     portfolio: 120,
+  //     experienceYears: 6
+  //   },
+  //   {
+  //     id: '4',
+  //     name: 'Cinematic Wedding Films',
+  //     service: 'Videography',
+  //     category: 'Videography',
+  //     location: 'Los Angeles, CA',
+  //     rating: 5.0,
+  //     reviewCount: 72,
+  //     priceRange: '$$$',
+  //     verified: true,
+  //     portfolio: 95,
+  //     experienceYears: 10
+  //   },
+  //   {
+  //     id: '5',
+  //     name: 'Elegant Event Decor',
+  //     service: 'Decoration & Design',
+  //     category: 'Decoration',
+  //     location: 'Chicago, IL',
+  //     rating: 4.6,
+  //     reviewCount: 134,
+  //     priceRange: '$$',
+  //     verified: false,
+  //     portfolio: 200,
+  //     experienceYears: 7
+  //   }
+  // ];
 
   // Filter vendors
-  const filteredVendors = vendors.filter(vendor => {
-    const matchesSearch = vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         vendor.service.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
-    const matchesPrice = priceFilter === 'all' || vendor.priceRange === priceFilter;
-    const matchesRating = ratingFilter === 'all' || vendor.rating >= parseFloat(ratingFilter);
+  // const filteredVendors = vendors.filter(vendor => {
+  //   const matchesSearch = vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //                        vendor.service.toLowerCase().includes(searchQuery.toLowerCase());
+  //   const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
+  //   const matchesPrice = priceFilter === 'all' || vendor.priceRange === priceFilter;
+  //   const matchesRating = ratingFilter === 'all' || vendor.rating >= parseFloat(ratingFilter);
     
-    return matchesSearch && matchesCategory && matchesPrice && matchesRating;
-  });
+  //   return matchesSearch && matchesCategory && matchesPrice && matchesRating;
+  // });
+
+  const filteredVendors = vendors.filter((vendor) => {
+  const matchesPrice =
+    priceFilter === "all" || vendor.priceRange === priceFilter;
+
+  const matchesRating =
+    ratingFilter === "all" ||
+    vendor.rating >= parseFloat(ratingFilter);
+
+  return matchesPrice && matchesRating;
+});
 
   // Get unique categories
   const categories = ['all', ...Array.from(new Set(vendors.map(v => v.category)))];
@@ -266,7 +342,11 @@ export const GlobalVendors: React.FC = () => {
       </div>
 
       {/* Vendors Grid */}
-      {filteredVendors.length > 0 ? (
+      {loading ? (
+  <div className="text-center py-12">
+    <p className="text-[#16232A]/60">Loading vendors...</p>
+  </div>
+) : filteredVendors.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVendors.map((vendor, index) => {
             const ServiceIcon = getServiceIcon(vendor.category);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect,useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   Plus, 
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-
+import axios from 'axios';
 interface PackageItem {
   id: string;
   name: string;
@@ -25,87 +25,22 @@ interface PackageItem {
   price: string;
   inclusions: string[];
   exclusions: string[];
-  eventTypes: string[];
-  status: 'active' | 'inactive';
+  event_types: string[];
+  status: "active" | "inactive";
   createdAt: string;
 }
+
 
 const CATEGORIES = ['Photography', 'Catering', 'Decoration', 'Entertainment', 'Venue', 'Transportation'];
 const EVENT_TYPES = ['Wedding', 'Corporate', 'Birthday', 'Anniversary', 'Conference', 'Exhibition', 'Other'];
 
 export const Packages: React.FC = () => {
-  const [packages, setPackages] = useState<PackageItem[]>([
-    {
-      id: '1',
-      name: 'Premium Wedding Photography',
-      category: 'Photography',
-      description: 'Complete wedding photography coverage from pre-wedding to reception',
-      price: '₹75,000',
-      inclusions: [
-        'Pre-wedding photoshoot',
-        'Full day wedding coverage (10 hours)',
-        '2 professional photographers',
-        '500+ edited photos',
-        'Premium photo album (30 pages)',
-        'All high-resolution images',
-        'Online gallery'
-      ],
-      exclusions: [
-        'Drone photography',
-        'Video coverage',
-        'Additional albums',
-        'Outstation travel'
-      ],
-      eventTypes: ['Wedding', 'Anniversary'],
-      status: 'active',
-      createdAt: '2024-03-01'
-    },
-    {
-      id: '2',
-      name: 'Corporate Event Package',
-      category: 'Photography',
-      description: 'Professional photography for corporate events and conferences',
-      price: '₹35,000',
-      inclusions: [
-        'Full event coverage (6 hours)',
-        '1 professional photographer',
-        '200+ edited photos',
-        'Same-day editing for social media',
-        'All high-resolution images',
-        'USB drive with all photos'
-      ],
-      exclusions: [
-        'Video coverage',
-        'Prints and albums',
-        'Multi-day events'
-      ],
-      eventTypes: ['Corporate', 'Conference', 'Exhibition'],
-      status: 'active',
-      createdAt: '2024-02-15'
-    },
-    {
-      id: '3',
-      name: 'Birthday Photography Basic',
-      category: 'Photography',
-      description: 'Simple and affordable birthday party photography',
-      price: '₹12,000',
-      inclusions: [
-        'Event coverage (3 hours)',
-        '1 photographer',
-        '100+ edited photos',
-        'Digital delivery',
-        'Online gallery'
-      ],
-      exclusions: [
-        'Prints',
-        'Video coverage',
-        'Additional hours'
-      ],
-      eventTypes: ['Birthday'],
-      status: 'inactive',
-      createdAt: '2024-01-20'
-    }
-  ]);
+  const API_URL = "http://localhost:5000/api/vendor/packages";
+
+const [packages, setPackages] = useState<PackageItem[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -145,7 +80,7 @@ export const Packages: React.FC = () => {
       });
       setInclusions(pkg.inclusions);
       setExclusions(pkg.exclusions);
-      setEventTypes(pkg.eventTypes);
+      setEventTypes(pkg.event_types);
     } else {
       setSelectedPackage(null);
       setFormData({
@@ -181,40 +116,56 @@ export const Packages: React.FC = () => {
     setNewExclusion('');
   };
 
-  const handleSave = () => {
-    if (modalMode === 'add') {
-      const newPackage: PackageItem = {
-        id: Date.now().toString(),
+ const handleSave = async () => {
+  try {
+    if (modalMode === "add") {
+      const res = await axios.post(API_URL, {
         ...formData,
         inclusions,
         exclusions,
-        eventTypes,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      setPackages([newPackage, ...packages]);
-    } else if (modalMode === 'edit' && selectedPackage) {
-      setPackages(packages.map(pkg => 
-        pkg.id === selectedPackage.id 
-          ? { ...pkg, ...formData, inclusions, exclusions, eventTypes }
+        eventTypes
+      });
+
+      setPackages([res.data.data, ...packages]);
+    } else if (modalMode === "edit" && selectedPackage) {
+      await axios.put(`${API_URL}/${selectedPackage.id}`, {
+        ...formData,
+        inclusions,
+        exclusions,
+        eventTypes
+      });
+
+      setPackages(packages.map(pkg =>
+        pkg.id === selectedPackage.id
+          ? { ...pkg, ...formData, inclusions, exclusions, event_types: eventTypes }
           : pkg
       ));
     }
+
     handleCloseModal();
-  };
+  } catch {
+    alert("Save failed");
+  }
+};
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this package?')) {
-      setPackages(packages.filter(pkg => pkg.id !== id));
-    }
-  };
 
-  const handleToggleStatus = (id: string) => {
-    setPackages(packages.map(pkg =>
-      pkg.id === id
-        ? { ...pkg, status: pkg.status === 'active' ? 'inactive' : 'active' }
-        : pkg
-    ));
-  };
+ const handleDelete = async (id: string) => {
+  if (!confirm("Delete this package?")) return;
+
+  await axios.delete(`${API_URL}/${id}`);
+  setPackages(packages.filter(pkg => pkg.id !== id));
+};
+
+
+  const handleToggleStatus = async (id: string) => {
+  const res = await axios.patch(`${API_URL}/${id}/status`);
+
+  setPackages(packages.map(pkg =>
+    pkg.id === id
+      ? { ...pkg, status: res.data.status }
+      : pkg
+  ));
+};
 
   const addInclusion = () => {
     if (newInclusion.trim()) {
@@ -245,6 +196,26 @@ export const Packages: React.FC = () => {
       setEventTypes([...eventTypes, eventType]);
     }
   };
+  
+  useEffect(() => {
+  const fetchPackages = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setPackages(res.data.data);
+    } catch (err) {
+      setError("Failed to load packages");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPackages();
+}, []);
+
+
+if (loading) return <p className="text-center">Loading packages...</p>;
+if (error) return <p className="text-center text-red-500">{error}</p>;
+
 
   return (
     <div className="space-y-6">
@@ -366,11 +337,11 @@ export const Packages: React.FC = () => {
               <p className="text-gray-600 mb-4">{pkg.description}</p>
 
               {/* Event Types */}
-              {pkg.eventTypes.length > 0 && (
+              {pkg.event_types.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-medium text-gray-500 mb-2">Applicable for:</p>
                   <div className="flex flex-wrap gap-2">
-                    {pkg.eventTypes.map(eventType => (
+                    {pkg.event_types.map(eventType => (
                       <span 
                         key={eventType}
                         className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
