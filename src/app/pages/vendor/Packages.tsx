@@ -1,10 +1,10 @@
-import React, { useEffect,useState } from 'react';
-import { motion } from 'motion/react';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
+import React, { useEffect, useState } from "react";
+import { motion } from "motion/react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
   X,
   Check,
   ToggleLeft,
@@ -12,11 +12,11 @@ import {
   Package as PackageIcon,
   DollarSign,
   CheckCircle2,
-  XCircle
-} from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import axios from 'axios';
+  XCircle,
+} from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import axios from "axios";
 interface PackageItem {
   id: string;
   name: string;
@@ -30,44 +30,81 @@ interface PackageItem {
   createdAt: string;
 }
 
-
-const CATEGORIES = ['Photography', 'Catering', 'Decoration', 'Entertainment', 'Venue', 'Transportation'];
-const EVENT_TYPES = ['Wedding', 'Corporate', 'Birthday', 'Anniversary', 'Conference', 'Exhibition', 'Other'];
+const CATEGORIES = [
+  "Photography",
+  "Catering",
+  "Decoration",
+  "Entertainment",
+  "Venue",
+  "Transportation",
+];
+const EVENT_TYPES = [
+  "Wedding",
+  "Corporate",
+  "Birthday",
+  "Anniversary",
+  "Conference",
+  "Exhibition",
+  "Other",
+];
 
 export const Packages: React.FC = () => {
   const API_URL = "http://localhost:5000/api/vendor/packages";
 
-const [packages, setPackages] = useState<PackageItem[]>([]);
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState<string | null>(null);
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-
-  const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-  const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(
+    null,
+  );
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    description: '',
-    price: '',
-    status: 'active' as 'active' | 'inactive'
+    name: "",
+    category: "",
+    description: "",
+    price: "",
+    status: "active" as "active" | "inactive",
   });
   const [inclusions, setInclusions] = useState<string[]>([]);
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [eventTypes, setEventTypes] = useState<string[]>([]);
-  const [newInclusion, setNewInclusion] = useState('');
-  const [newExclusion, setNewExclusion] = useState('');
+  const [newInclusion, setNewInclusion] = useState("");
+  const [newExclusion, setNewExclusion] = useState("");
 
-  const filteredPackages = packages.filter(pkg => 
-    pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pkg.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pkg.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPackages = packages.filter(
+    (pkg) =>
+      pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pkg.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pkg.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const handleOpenModal = (mode: 'add' | 'edit', pkg?: PackageItem) => {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/admin/category-list",
+        );
+
+        setCategories(res.data.data);
+      } catch (err) {
+        console.log("Category load error");
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const selectedCategoryObj = categories.find(
+    (c) => c.name === formData.category,
+  );
+
+  const handleOpenModal = (mode: "add" | "edit", pkg?: PackageItem) => {
     setModalMode(mode);
     if (pkg) {
       setSelectedPackage(pkg);
@@ -76,7 +113,7 @@ const [error, setError] = useState<string | null>(null);
         category: pkg.category,
         description: pkg.description,
         price: pkg.price,
-        status: pkg.status
+        status: pkg.status,
       });
       setInclusions(pkg.inclusions);
       setExclusions(pkg.exclusions);
@@ -84,18 +121,18 @@ const [error, setError] = useState<string | null>(null);
     } else {
       setSelectedPackage(null);
       setFormData({
-        name: '',
-        category: '',
-        description: '',
-        price: '',
-        status: 'active'
+        name: "",
+        category: "",
+        description: "",
+        price: "",
+        status: "active",
       });
       setInclusions([]);
       setExclusions([]);
       setEventTypes([]);
     }
-    setNewInclusion('');
-    setNewExclusion('');
+    setNewInclusion("");
+    setNewExclusion("");
     setShowModal(true);
   };
 
@@ -103,74 +140,110 @@ const [error, setError] = useState<string | null>(null);
     setShowModal(false);
     setSelectedPackage(null);
     setFormData({
-      name: '',
-      category: '',
-      description: '',
-      price: '',
-      status: 'active'
+      name: "",
+      category: "",
+      description: "",
+      price: "",
+      status: "active",
     });
     setInclusions([]);
     setExclusions([]);
     setEventTypes([]);
-    setNewInclusion('');
-    setNewExclusion('');
+    setNewInclusion("");
+    setNewExclusion("");
   };
 
- const handleSave = async () => {
-  try {
-    if (modalMode === "add") {
-      const res = await axios.post(API_URL, {
-        ...formData,
-        inclusions,
-        exclusions,
-        eventTypes
-      });
+  const handleSave = async () => {
+    try {
+      if (modalMode === "add") {
+        const token = localStorage.getItem("token");
 
-      setPackages([res.data.data, ...packages]);
-    } else if (modalMode === "edit" && selectedPackage) {
-      await axios.put(`${API_URL}/${selectedPackage.id}`, {
-        ...formData,
-        inclusions,
-        exclusions,
-        eventTypes
-      });
-
-      setPackages(packages.map(pkg =>
-        pkg.id === selectedPackage.id
-          ? { ...pkg, ...formData, inclusions, exclusions, event_types: eventTypes }
-          : pkg
-      ));
-    }
-
-    handleCloseModal();
-  } catch {
-    alert("Save failed");
+        const res = await axios.post(
+  API_URL,
+  {
+    ...formData,
+    inclusions,
+    exclusions,
+    eventTypes,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   }
-};
+);
 
+        setPackages([res.data.data, ...packages]);
+      } else if (modalMode === "edit" && selectedPackage) {
+       const token = localStorage.getItem("token");
 
- const handleDelete = async (id: string) => {
-  if (!confirm("Delete this package?")) return;
+await axios.put(
+  `${API_URL}/${selectedPackage.id}`,
+  {
+    ...formData,
+    inclusions,
+    exclusions,
+    eventTypes,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
-  await axios.delete(`${API_URL}/${id}`);
-  setPackages(packages.filter(pkg => pkg.id !== id));
-};
+        setPackages(
+          packages.map((pkg) =>
+            pkg.id === selectedPackage.id
+              ? {
+                  ...pkg,
+                  ...formData,
+                  inclusions,
+                  exclusions,
+                  event_types: eventTypes,
+                }
+              : pkg,
+          ),
+        );
+      }
 
+      handleCloseModal();
+    } catch {
+      alert("Save failed");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this package?")) return;
+
+    const token = localStorage.getItem("token");
+    await axios.delete(`${API_URL}/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    setPackages(packages.filter((pkg) => pkg.id !== id));
+  };
 
   const handleToggleStatus = async (id: string) => {
-  const res = await axios.patch(`${API_URL}/${id}/status`);
+    const token = localStorage.getItem("token");
+    const res = await axios.patch(`${API_URL}/${id}/status`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  setPackages(packages.map(pkg =>
-    pkg.id === id
-      ? { ...pkg, status: res.data.status }
-      : pkg
-  ));
-};
+    setPackages(
+      packages.map((pkg) =>
+        pkg.id === id ? { ...pkg, status: res.data.status } : pkg,
+      ),
+    );
+  };
 
   const addInclusion = () => {
     if (newInclusion.trim()) {
       setInclusions([...inclusions, newInclusion.trim()]);
-      setNewInclusion('');
+      setNewInclusion("");
     }
   };
 
@@ -181,7 +254,7 @@ const [error, setError] = useState<string | null>(null);
   const addExclusion = () => {
     if (newExclusion.trim()) {
       setExclusions([...exclusions, newExclusion.trim()]);
-      setNewExclusion('');
+      setNewExclusion("");
     }
   };
 
@@ -191,31 +264,36 @@ const [error, setError] = useState<string | null>(null);
 
   const toggleEventType = (eventType: string) => {
     if (eventTypes.includes(eventType)) {
-      setEventTypes(eventTypes.filter(et => et !== eventType));
+      setEventTypes(eventTypes.filter((et) => et !== eventType));
     } else {
       setEventTypes([...eventTypes, eventType]);
     }
   };
-  
+
   useEffect(() => {
-  const fetchPackages = async () => {
-    try {
-      const res = await axios.get(API_URL);
-      setPackages(res.data.data);
-    } catch (err) {
-      setError("Failed to load packages");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchPackages = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-  fetchPackages();
-}, []);
+const res = await axios.get(API_URL, {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+        
+        setPackages(res.data.data);
+      } catch (err) {
+        setError("Failed to load packages");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchPackages();
+  }, []);
 
-if (loading) return <p className="text-center">Loading packages...</p>;
-if (error) return <p className="text-center text-red-500">{error}</p>;
-
+  if (loading) return <p className="text-center">Loading packages...</p>;
+  if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
     <div className="space-y-6">
@@ -223,10 +301,12 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#16232A]">Packages</h1>
-          <p className="text-gray-600 mt-1">Create and manage your service packages</p>
+          <p className="text-gray-600 mt-1">
+            Create and manage your service packages
+          </p>
         </div>
-        <Button 
-          onClick={() => handleOpenModal('add')}
+        <Button
+          onClick={() => handleOpenModal("add")}
           className="bg-[#075056] hover:bg-[#075056]/90 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -251,15 +331,17 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
       {filteredPackages.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <PackageIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-[#16232A] mb-2">No packages found</h3>
+          <h3 className="text-lg font-semibold text-[#16232A] mb-2">
+            No packages found
+          </h3>
           <p className="text-gray-600 mb-6">
-            {searchTerm 
-              ? 'Try adjusting your search' 
-              : 'Create your first package to offer to clients'}
+            {searchTerm
+              ? "Try adjusting your search"
+              : "Create your first package to offer to clients"}
           </p>
           {!searchTerm && (
-            <Button 
-              onClick={() => handleOpenModal('add')}
+            <Button
+              onClick={() => handleOpenModal("add")}
               className="bg-[#075056] hover:bg-[#075056]/90 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -281,13 +363,17 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold text-[#16232A]">{pkg.name}</h3>
-                    <span className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
-                      pkg.status === 'active' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {pkg.status === 'active' ? 'Active' : 'Inactive'}
+                    <h3 className="text-xl font-semibold text-[#16232A]">
+                      {pkg.name}
+                    </h3>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
+                        pkg.status === "active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {pkg.status === "active" ? "Active" : "Inactive"}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -306,7 +392,7 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleOpenModal('edit', pkg)}
+                    onClick={() => handleOpenModal("edit", pkg)}
                   >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
@@ -316,7 +402,7 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                     variant="outline"
                     onClick={() => handleToggleStatus(pkg.id)}
                   >
-                    {pkg.status === 'active' ? (
+                    {pkg.status === "active" ? (
                       <ToggleRight className="h-4 w-4 text-green-600" />
                     ) : (
                       <ToggleLeft className="h-4 w-4 text-gray-400" />
@@ -339,10 +425,12 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
               {/* Event Types */}
               {pkg.event_types.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs font-medium text-gray-500 mb-2">Applicable for:</p>
+                  <p className="text-xs font-medium text-gray-500 mb-2">
+                    Applicable for:
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {pkg.event_types.map(eventType => (
-                      <span 
+                    {pkg.event_types.map((eventType) => (
+                      <span
                         key={eventType}
                         className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
                       >
@@ -361,13 +449,18 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     <h4 className="font-semibold text-[#16232A]">Inclusions</h4>
                     {pkg.inclusions.length > 0 && (
-                      <span className="text-xs text-gray-500">({pkg.inclusions.length})</span>
+                      <span className="text-xs text-gray-500">
+                        ({pkg.inclusions.length})
+                      </span>
                     )}
                   </div>
                   {pkg.inclusions.length > 0 ? (
                     <ul className="space-y-2">
                       {pkg.inclusions.slice(0, 4).map((item, idx) => (
-                        <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
+                        <li
+                          key={idx}
+                          className="text-sm text-gray-600 flex items-start gap-2"
+                        >
                           <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
@@ -379,7 +472,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                       )}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-400 italic">No inclusions specified</p>
+                    <p className="text-sm text-gray-400 italic">
+                      No inclusions specified
+                    </p>
                   )}
                 </div>
 
@@ -389,13 +484,18 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                     <XCircle className="h-4 w-4 text-red-600" />
                     <h4 className="font-semibold text-[#16232A]">Exclusions</h4>
                     {pkg.exclusions.length > 0 && (
-                      <span className="text-xs text-gray-500">({pkg.exclusions.length})</span>
+                      <span className="text-xs text-gray-500">
+                        ({pkg.exclusions.length})
+                      </span>
                     )}
                   </div>
                   {pkg.exclusions.length > 0 ? (
                     <ul className="space-y-2">
                       {pkg.exclusions.slice(0, 4).map((item, idx) => (
-                        <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
+                        <li
+                          key={idx}
+                          className="text-sm text-gray-600 flex items-start gap-2"
+                        >
                           <X className="h-3.5 w-3.5 text-red-600 mt-0.5 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
@@ -407,7 +507,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                       )}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-400 italic">No exclusions specified</p>
+                    <p className="text-sm text-gray-400 italic">
+                      No exclusions specified
+                    </p>
                   )}
                 </div>
               </div>
@@ -427,9 +529,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
             {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#16232A]">
-                {modalMode === 'add' ? 'Add New Package' : 'Edit Package'}
+                {modalMode === "add" ? "Add New Package" : "Edit Package"}
               </h2>
-              <button 
+              <button
                 onClick={handleCloseModal}
                 className="p-2 hover:bg-gray-100 rounded-lg"
               >
@@ -446,7 +548,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                 </label>
                 <Input
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="e.g., Premium Wedding Photography"
                 />
               </div>
@@ -458,12 +562,16 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
                     className="w-full h-10 px-3 rounded-lg border border-gray-200"
                   >
                     <option value="">Select category</option>
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -474,7 +582,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   </label>
                   <Input
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
                     placeholder="e.g., ₹75,000"
                   />
                 </div>
@@ -486,7 +596,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   placeholder="Describe this package..."
                   rows={3}
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 resize-none"
@@ -502,7 +614,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   <Input
                     value={newInclusion}
                     onChange={(e) => setNewInclusion(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInclusion())}
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), addInclusion())
+                    }
                     placeholder="Add an inclusion..."
                   />
                   <Button
@@ -517,7 +631,10 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                 {inclusions.length > 0 && (
                   <ul className="space-y-2">
                     {inclusions.map((item, index) => (
-                      <li key={index} className="flex items-center justify-between gap-2 p-2 bg-green-50 rounded-lg">
+                      <li
+                        key={index}
+                        className="flex items-center justify-between gap-2 p-2 bg-green-50 rounded-lg"
+                      >
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
                           <span className="text-sm text-gray-700">{item}</span>
@@ -543,7 +660,9 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   <Input
                     value={newExclusion}
                     onChange={(e) => setNewExclusion(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addExclusion())}
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), addExclusion())
+                    }
                     placeholder="Add an exclusion..."
                   />
                   <Button
@@ -558,7 +677,10 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                 {exclusions.length > 0 && (
                   <ul className="space-y-2">
                     {exclusions.map((item, index) => (
-                      <li key={index} className="flex items-center justify-between gap-2 p-2 bg-red-50 rounded-lg">
+                      <li
+                        key={index}
+                        className="flex items-center justify-between gap-2 p-2 bg-red-50 rounded-lg"
+                      >
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <X className="h-4 w-4 text-red-600 flex-shrink-0" />
                           <span className="text-sm text-gray-700">{item}</span>
@@ -581,15 +703,15 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   Applicable Event Types
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {EVENT_TYPES.map(eventType => (
+                  {EVENT_TYPES.map((eventType) => (
                     <button
                       key={eventType}
                       type="button"
                       onClick={() => toggleEventType(eventType)}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         eventTypes.includes(eventType)
-                          ? 'bg-[#075056] text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? "bg-[#075056] text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       {eventType}
@@ -607,8 +729,10 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
-                      checked={formData.status === 'active'}
-                      onChange={() => setFormData({ ...formData, status: 'active' })}
+                      checked={formData.status === "active"}
+                      onChange={() =>
+                        setFormData({ ...formData, status: "active" })
+                      }
                       className="w-4 h-4 text-[#075056]"
                     />
                     <span className="text-sm">Active</span>
@@ -616,8 +740,10 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
-                      checked={formData.status === 'inactive'}
-                      onChange={() => setFormData({ ...formData, status: 'inactive' })}
+                      checked={formData.status === "inactive"}
+                      onChange={() =>
+                        setFormData({ ...formData, status: "inactive" })
+                      }
                       className="w-4 h-4 text-gray-400"
                     />
                     <span className="text-sm">Inactive</span>
@@ -628,19 +754,21 @@ if (error) return <p className="text-center text-red-500">{error}</p>;
 
             {/* Modal Footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={handleCloseModal}
-              >
+              <Button variant="outline" onClick={handleCloseModal}>
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 className="bg-[#075056] hover:bg-[#075056]/90 text-white"
-                disabled={!formData.name || !formData.category || !formData.price || !formData.description}
+                disabled={
+                  !formData.name ||
+                  !formData.category ||
+                  !formData.price ||
+                  !formData.description
+                }
               >
                 <Check className="h-4 w-4 mr-2" />
-                {modalMode === 'add' ? 'Add Package' : 'Save Changes'}
+                {modalMode === "add" ? "Add Package" : "Save Changes"}
               </Button>
             </div>
           </motion.div>

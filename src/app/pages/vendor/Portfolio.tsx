@@ -53,6 +53,7 @@ export const Portfolio: React.FC = () => {
     return Array.isArray(item.PortfolioMedia) ? item.PortfolioMedia : [];
   };
 
+  const [categories, setCategories] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
@@ -70,10 +71,10 @@ export const Portfolio: React.FC = () => {
     status: "active" as "active" | "inactive",
   });
   const [uploadedMedia, setUploadedMedia] = useState<
-    { type: "image" | "video"; url: string }[]
+    { type: "image" | "video"; url: string; file?: File }[]
   >([]);
 
-  const categories = ["All", ...Object.keys(CATEGORIES)];
+  // const categories = ["All", ...Object.keys(CATEGORIES)];
   const subCategories =
     formData.category &&
     CATEGORIES[formData.category as keyof typeof CATEGORIES]
@@ -98,6 +99,26 @@ export const Portfolio: React.FC = () => {
     return matchesSearch && matchesCategory && matchesSubCategory;
   });
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/admin/category-list",
+        );
+
+        setCategories(res.data.data);
+      } catch (err) {
+        console.log("Category load error");
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const selectedCategoryObj = categories.find(
+    (c) => c.name === formData.category,
+  );
+
   const handleOpenModal = (
     mode: "add" | "edit" | "view",
     item?: PortfolioItem,
@@ -113,9 +134,8 @@ export const Portfolio: React.FC = () => {
         status: item.status,
       });
       setUploadedMedia(
-  Array.isArray(item.PortfolioMedia) ? item.PortfolioMedia : []
-);
-
+        Array.isArray(item.PortfolioMedia) ? item.PortfolioMedia : [],
+      );
     } else {
       setSelectedItem(null);
       setFormData({
@@ -148,16 +168,26 @@ export const Portfolio: React.FC = () => {
       const token = localStorage.getItem("token");
 
       if (modalMode === "add") {
-        const res = await axios.post(
-          API_URL,
-          {
-            ...formData,
-            media: uploadedMedia,
+        const formDataObj = new FormData();
+
+        formDataObj.append("title", formData.title);
+        formDataObj.append("category", formData.category);
+        formDataObj.append("subCategory", formData.subCategory);
+        formDataObj.append("description", formData.description);
+        formDataObj.append("status", formData.status);
+
+        uploadedMedia.forEach((media: any) => {
+          if (media.file) {
+            formDataObj.append("media", media.file);
+          }
+        });
+
+        const res = await axios.post(API_URL, formDataObj, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        });
 
         setPortfolioItems([res.data.portfolio, ...portfolioItems]);
       }
@@ -228,16 +258,16 @@ export const Portfolio: React.FC = () => {
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      // Simulate file upload - in real app, upload to server
-      const newMedia = Array.from(files).map((file) => ({
-        type: file.type.startsWith("video/")
-          ? ("video" as const)
-          : ("image" as const),
-        url: URL.createObjectURL(file),
-      }));
-      setUploadedMedia([...uploadedMedia, ...newMedia]);
-    }
+
+    if (!files) return;
+
+    const newMedia = Array.from(files).map((file) => ({
+      type: file.type.startsWith("video/") ? "video" : "image",
+      url: URL.createObjectURL(file),
+      file: file,
+    }));
+
+    setUploadedMedia((prev: any) => [...prev, ...newMedia]);
   };
 
   const handleRemoveMedia = (index: number) => {
@@ -377,7 +407,7 @@ export const Portfolio: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item, index) => {
             console.log("ITEM MEDIA 👉", item.PortfolioMedia); // ✅ YAHAN
-  console.log("SAFE MEDIA 👉", getMedia(item));     // ✅ YAHAN
+            console.log("SAFE MEDIA 👉", getMedia(item)); // ✅ YAHAN
 
             const media = getMedia(item);
             return (
@@ -390,44 +420,26 @@ export const Portfolio: React.FC = () => {
               >
                 {/* Thumbnail */}
                 <div className="relative aspect-video bg-gray-100">
-                  {media.length > 0 && media[0].type === "image" ? (
-                    <img
-                      src={media[0].url}
-                      alt={item.title}
-                      
-                      className="w-full h-full object-cover"
-                    />
-                    
+                  {media.length > 0 ? (
+                    media[0].type === "image" ? (
+                      <img
+                        src={`http://localhost:5000${media[0].url}`}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={`http://localhost:5000${media[0].url}`}
+                        className="w-full h-full object-cover"
+                        muted
+                        controls
+                      />
+                    )
                   ) : (
-                    
                     <div className="w-full h-full flex items-center justify-center">
                       <ImageIcon className="h-12 w-12 text-gray-400" />
                     </div>
                   )}
-
-                  {media.length > 1 && (
-                    <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                      +{media.length - 1}
-                    </div>
-                  )}
-
-                  {/* {media.length > 1 && (
-                    <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                      +{media.length - 1}
-                    </div>
-                  )} */}
-
-                  <div className="absolute top-2 left-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        item.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {item.status === "active" ? "Active" : "Inactive"}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Content */}
@@ -488,7 +500,6 @@ export const Portfolio: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {filteredItems.map((item, index) => (
-            
             <motion.div
               key={item.id}
               initial={{ opacity: 0, x: -20 }}
@@ -499,12 +510,21 @@ export const Portfolio: React.FC = () => {
               <div className="flex gap-4">
                 {/* Thumbnail */}
                 <div className="w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                  {item.PortfolioMedia[0]?.type === "image" ? (
-                    <img
-                      src={item.PortfolioMedia[0].url}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
+                  {item.PortfolioMedia[0] ? (
+                    item.PortfolioMedia[0].type === "image" ? (
+                      <img
+                        src={`http://localhost:5000${item.PortfolioMedia[0].url}`}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={`http://localhost:5000${item.PortfolioMedia[0].url}`}
+                        className="w-full h-full object-cover"
+                        muted
+                        controls
+                      />
+                    )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Video className="h-8 w-8 text-gray-400" />
@@ -724,9 +744,9 @@ export const Portfolio: React.FC = () => {
                         className="w-full h-10 px-3 rounded-lg border border-gray-200"
                       >
                         <option value="">Select category</option>
-                        {Object.keys(CATEGORIES).map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.name}>
+                            {cat.name}
                           </option>
                         ))}
                       </select>
@@ -748,13 +768,14 @@ export const Portfolio: React.FC = () => {
                         disabled={!formData.category}
                       >
                         <option value="">Select sub-category</option>
-                        {subCategories
-                          .filter((s) => s !== "All")
-                          .map((subCat) => (
-                            <option key={subCat} value={subCat}>
-                              {subCat}
+
+                        {selectedCategoryObj?.subcategories.map(
+                          (sub: { id: string; name: string }) => (
+                            <option key={sub.id} value={sub.name}>
+                              {sub.name}
                             </option>
-                          ))}
+                          ),
+                        )}
                       </select>
                     </div>
                   </div>
@@ -801,34 +822,35 @@ export const Portfolio: React.FC = () => {
                     </label>
 
                     {/* Uploaded Media Preview */}
-{Array.isArray(uploadedMedia) && uploadedMedia.length > 0 && (
-                      <div className="grid grid-cols-4 gap-3 mt-3">
-                        {uploadedMedia.map((media, index) => (
-                          <div
-                            key={index}
-                            className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group"
-                          >
-                            {media.type === "image" ? (
-                              <img
-                                src={media.url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Video className="h-8 w-8 text-gray-400" />
-                              </div>
-                            )}
-                            <button
-                              onClick={() => handleRemoveMedia(index)}
-                              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    {Array.isArray(uploadedMedia) &&
+                      uploadedMedia.length > 0 && (
+                        <div className="grid grid-cols-4 gap-3 mt-3">
+                          {uploadedMedia.map((media, index) => (
+                            <div
+                              key={index}
+                              className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group"
                             >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                              {media.type === "image" ? (
+                                <img
+                                  src={media.url}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Video className="h-8 w-8 text-gray-400" />
+                                </div>
+                              )}
+                              <button
+                                onClick={() => handleRemoveMedia(index)}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                   </div>
 
                   <div>

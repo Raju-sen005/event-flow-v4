@@ -33,7 +33,7 @@ export const DemoSelectionModal: React.FC<CustomerAuthModalProps> = ({
   onOpenChange,
 }) => {
   const navigate = useNavigate();
-  const { login, signupCustomer } = useAuth();
+  const { login, user, signupCustomer } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabType>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -55,21 +55,33 @@ export const DemoSelectionModal: React.FC<CustomerAuthModalProps> = ({
     setShowPassword(false);
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // const { login, user } = useAuth();
 
-    try {
-      await login(email, password);
-      onOpenChange(false);
-      navigate('/customer/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
-    } finally {
-      setLoading(false);
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  try {
+    await login(email, password);
+    onOpenChange(false);
+
+    if (user?.role === "customer") {
+      navigate("/customer/dashboard");
+    } 
+    else if (user?.role === "vendor") {
+      navigate("/vendor/dashboard");
+    } 
+    else if (user?.role === "event-planner" || user?.role === "freelance-planner") {
+      navigate("/planner/dashboard");
     }
-  };
+
+  } catch (err: any) {
+    setError(err.message || "Invalid credentials");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

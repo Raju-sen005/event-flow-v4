@@ -171,7 +171,7 @@ export const HomePage: React.FC = () => {
                 className="text-[#16232A] font-medium hover:bg-gray-50"
                 onClick={() => setShowDemoModal(true)}
               >
-                Sign Up
+                Customer Sign Up
               </Button>
               <Button 
                 className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white font-semibold shadow-sm hover:shadow-md transition-all"

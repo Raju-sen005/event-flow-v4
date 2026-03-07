@@ -1,90 +1,122 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Mail, Lock, Briefcase, Calendar, Users, AlertCircle, CheckCircle2, User, X } from 'lucide-react';
-import { Alert, AlertDescription } from './ui/alert';
-import { LoadingSpinner } from './LoadingSpinner';
-import { VisuallyHidden } from './ui/visually-hidden';
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { useAuth } from "../context/AuthContext";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  Briefcase,
+  Calendar,
+  Users,
+  AlertCircle,
+  CheckCircle2,
+  User,
+  X,
+} from "lucide-react";
+import { Alert, AlertDescription } from "./ui/alert";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { VisuallyHidden } from "./ui/visually-hidden";
 
 interface BusinessLoginModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type BusinessRole = 'vendor' | 'event-planner' | 'freelance-planner';
-type TabType = 'login' | 'register';
+type BusinessRole = "vendor" | "event-planner" | "freelance-planner";
+type TabType = "login" | "register";
 
-export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, onOpenChange }) => {
+export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({
+  open,
+  onOpenChange,
+}) => {
   const navigate = useNavigate();
-  const { login, demoLogin, loginWithGoogle, signupBusiness } = useAuth();
+  const { login, user, demoLogin, loginWithGoogle, signupBusiness } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<TabType>('login');
+  const [activeTab, setActiveTab] = useState<TabType>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Login form state
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   // Register form state
   const [selectedRole, setSelectedRole] = useState<BusinessRole | null>(null);
-  const [registerName, setRegisterName] = useState('');
-  const [registerEmail, setRegisterEmail] = useState('');
-  const [registerPassword, setRegisterPassword] = useState('');
-  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
-  const [registerBusinessName, setRegisterBusinessName] = useState('');
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+  const [registerBusinessName, setRegisterBusinessName] = useState("");
 
   const businessRoles = [
     {
-      id: 'vendor' as BusinessRole,
-      title: 'Vendor',
-      description: 'Provide services for events',
+      id: "vendor" as BusinessRole,
+      title: "Vendor",
+      description: "Provide services for events",
       icon: Briefcase,
-      color: 'border-[#075056] hover:bg-[#075056]/5',
-      activeColor: 'border-[#075056] bg-[#075056]/10'
+      color: "border-[#075056] hover:bg-[#075056]/5",
+      activeColor: "border-[#075056] bg-[#075056]/10",
     },
     {
-      id: 'event-planner' as BusinessRole,
-      title: 'Event Planner',
-      description: 'Plan and manage events',
+      id: "event-planner" as BusinessRole,
+      title: "Event Planner",
+      description: "Plan and manage events",
       icon: Calendar,
-      color: 'border-[#FF5B04] hover:bg-[#FF5B04]/5',
-      activeColor: 'border-[#FF5B04] bg-[#FF5B04]/10'
+      color: "border-[#FF5B04] hover:bg-[#FF5B04]/5",
+      activeColor: "border-[#FF5B04] bg-[#FF5B04]/10",
     },
     {
-      id: 'freelance-planner' as BusinessRole,
-      title: 'Freelance Planner',
-      description: 'Independent event planning',
+      id: "freelance-planner" as BusinessRole,
+      title: "Freelance Planner",
+      description: "Independent event planning",
       icon: Users,
-      color: 'border-[#16232A] hover:bg-[#16232A]/5',
-      activeColor: 'border-[#16232A] bg-[#16232A]/10'
-    }
+      color: "border-[#16232A] hover:bg-[#16232A]/5",
+      activeColor: "border-[#16232A] bg-[#16232A]/10",
+    },
   ];
 
   const passwordRequirements = [
-    { met: registerPassword.length >= 8, text: 'At least 8 characters' },
-    { met: /[A-Z]/.test(registerPassword), text: 'One uppercase letter' },
-    { met: /[a-z]/.test(registerPassword), text: 'One lowercase letter' },
-    { met: /[0-9]/.test(registerPassword), text: 'One number' }
+    { met: registerPassword.length >= 8, text: "At least 8 characters" },
+    { met: /[A-Z]/.test(registerPassword), text: "One uppercase letter" },
+    { met: /[a-z]/.test(registerPassword), text: "One lowercase letter" },
+    { met: /[0-9]/.test(registerPassword), text: "One number" },
   ];
+  // const { login, user } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       await login(loginEmail, loginPassword);
+
       onOpenChange(false);
-      navigate('/vendor/dashboard');
+
+      if (user?.role === "vendor") {
+        navigate("/vendor/dashboard");
+      } else if (
+        user?.role === "event-planner" ||
+        user?.role === "freelance-planner"
+      ) {
+        navigate("/planner/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password. Please try again.');
+      setError(err.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -92,64 +124,66 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
 
   const handleGoogleLogin = async () => {
     setSocialLoading(true);
-    setError('');
+    setError("");
     try {
       await loginWithGoogle();
       onOpenChange(false);
-      navigate('/vendor/dashboard');
+      navigate("/vendor/dashboard");
     } catch (error) {
-      setError('Failed to sign in with Google');
+      setError("Failed to sign in with Google");
     } finally {
       setSocialLoading(false);
     }
   };
 
   const handleDemoLogin = () => {
-    demoLogin('vendor');
+    demoLogin("vendor");
     onOpenChange(false);
-    navigate('/vendor/dashboard');
+    navigate("/vendor/dashboard");
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedRole) {
-      setError('Please select a business role to continue.');
+      setError("Please select a business role to continue.");
       return;
     }
 
     if (registerPassword !== registerConfirmPassword) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       return;
     }
 
-    const allRequirementsMet = passwordRequirements.every(req => req.met);
+    const allRequirementsMet = passwordRequirements.every((req) => req.met);
     if (!allRequirementsMet) {
-      setError('Please meet all password requirements.');
+      setError("Please meet all password requirements.");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
-      await signupBusiness(registerName,
+      await signupBusiness(
+        registerName,
         registerEmail,
         registerPassword,
         registerConfirmPassword,
         selectedRole,
-        registerBusinessName);
+        registerBusinessName,
+      );
 
       const dashboardRoutes: Record<BusinessRole, string> = {
-        'vendor': '/vendor/dashboard',
-        'event-planner': '/vendor/dashboard',
-        'freelance-planner': '/vendor/dashboard'
+        vendor: "/vendor/dashboard",
+        "event-planner": "/vendor/dashboard",
+        "freelance-planner": "/vendor/dashboard",
       };
 
       onOpenChange(false);
       navigate(dashboardRoutes[selectedRole]);
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -157,40 +191,40 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
 
   const handleGoogleSignup = async () => {
     if (!selectedRole) {
-      setError('Please select a business role first.');
+      setError("Please select a business role first.");
       return;
     }
 
     setSocialLoading(true);
-    setError('');
+    setError("");
     try {
       await loginWithGoogle();
 
       const dashboardRoutes: Record<BusinessRole, string> = {
-        'vendor': '/vendor/dashboard',
-        'event-planner': '/vendor/dashboard',
-        'freelance-planner': '/vendor/dashboard'
+        vendor: "/vendor/dashboard",
+        "event-planner": "/vendor/dashboard",
+        "freelance-planner": "/vendor/dashboard",
       };
 
       onOpenChange(false);
       navigate(dashboardRoutes[selectedRole]);
     } catch (error) {
-      setError('Failed to sign up with Google');
+      setError("Failed to sign up with Google");
     } finally {
       setSocialLoading(false);
     }
   };
 
   const resetForm = () => {
-    setLoginEmail('');
-    setLoginPassword('');
-    setRegisterName('');
-    setRegisterEmail('');
-    setRegisterPassword('');
-    setRegisterConfirmPassword('');
-    setRegisterBusinessName('');
+    setLoginEmail("");
+    setLoginPassword("");
+    setRegisterName("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setRegisterConfirmPassword("");
+    setRegisterBusinessName("");
     setSelectedRole(null);
-    setError('');
+    setError("");
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
@@ -201,20 +235,27 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      onOpenChange(isOpen);
-      if (!isOpen) {
-        resetForm();
-        setActiveTab('login');
-      }
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+          resetForm();
+          setActiveTab("login");
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-md p-0 bg-white/95 backdrop-blur-sm border-0 shadow-2xl max-h-[90vh]">
         <VisuallyHidden>
           <DialogTitle>
-            {activeTab === 'login' ? 'Business Login' : 'Create Business Account'}
+            {activeTab === "login"
+              ? "Business Login"
+              : "Create Business Account"}
           </DialogTitle>
           <DialogDescription>
-            {activeTab === 'login' ? 'Sign in to access your dashboard' : 'Join EventFlow and grow your business'}
+            {activeTab === "login"
+              ? "Sign in to access your dashboard"
+              : "Join EventFlow and grow your business"}
           </DialogDescription>
         </VisuallyHidden>
 
@@ -228,37 +269,43 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
             </div>
 
             <h2 className="text-center text-gray-900 mb-2">
-              {activeTab === 'login' ? 'Business Login' : 'Create Business Account'}
+              {activeTab === "login"
+                ? "Business Login"
+                : "Create Business Account"}
             </h2>
             <p className="text-center text-gray-500 text-sm">
-              {activeTab === 'login' ? 'Sign in to access your dashboard' : 'Join EventFlow and grow your business'}
+              {activeTab === "login"
+                ? "Sign in to access your dashboard"
+                : "Join EventFlow and grow your business"}
             </p>
           </div>
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6">
             <button
-              onClick={() => handleTabChange('login')}
-              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${activeTab === 'login'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+              onClick={() => handleTabChange("login")}
+              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${
+                activeTab === "login"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
               Login
             </button>
             <button
-              onClick={() => handleTabChange('register')}
-              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${activeTab === 'register'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+              onClick={() => handleTabChange("register")}
+              className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-colors ${
+                activeTab === "register"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
               Sign Up
             </button>
           </div>
 
           {/* Login Tab */}
-          {activeTab === 'login' && (
+          {activeTab === "login" && (
             <form onSubmit={handleLogin} className="space-y-3">
               {error && (
                 <Alert variant="destructive">
@@ -283,7 +330,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="Password"
@@ -295,7 +342,11 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -320,7 +371,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     Signing in...
                   </>
                 ) : (
-                  'Get Started'
+                  "Get Started"
                 )}
               </Button>
 
@@ -329,7 +380,9 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                   <span className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-white text-gray-400">Or sign in with</span>
+                  <span className="px-4 bg-white text-gray-400">
+                    Or sign in with
+                  </span>
                 </div>
               </div>
 
@@ -375,7 +428,11 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                   disabled={socialLoading || isLoading}
                   className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                   </svg>
                 </button>
@@ -394,7 +451,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
           )}
 
           {/* Register Tab */}
-          {activeTab === 'register' && (
+          {activeTab === "register" && (
             <form onSubmit={handleRegister} className="space-y-4">
               {error && (
                 <Alert variant="destructive">
@@ -404,31 +461,44 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
               )}
 
               <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-900">Select Business Role *</label>
+                <label className="text-sm font-semibold text-gray-900">
+                  Select Business Role *
+                </label>
                 <div className="grid gap-3">
                   {businessRoles.map((role) => (
                     <button
                       key={role.id}
                       type="button"
                       onClick={() => setSelectedRole(role.id)}
-                      className={`p-4 border-2 rounded-xl transition-all text-left ${selectedRole === role.id
-                          ? role.activeColor
-                          : role.color
-                        }`}
+                      className={`p-4 border-2 rounded-xl transition-all text-left ${
+                        selectedRole === role.id ? role.activeColor : role.color
+                      }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${selectedRole === role.id ? 'bg-white/50' : 'bg-gray-50'
-                          }`}>
+                        <div
+                          className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                            selectedRole === role.id
+                              ? "bg-white/50"
+                              : "bg-gray-50"
+                          }`}
+                        >
                           <role.icon className="h-5 w-5 text-[#16232A]" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-[#16232A]">{role.title}</h4>
-                          <p className="text-xs text-gray-600">{role.description}</p>
+                          <h4 className="font-semibold text-[#16232A]">
+                            {role.title}
+                          </h4>
+                          <p className="text-xs text-gray-600">
+                            {role.description}
+                          </p>
                         </div>
-                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${selectedRole === role.id
-                            ? 'border-gray-900 bg-gray-900'
-                            : 'border-gray-300'
-                          }`}>
+                        <div
+                          className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
+                            selectedRole === role.id
+                              ? "border-gray-900 bg-gray-900"
+                              : "border-gray-300"
+                          }`}
+                        >
                           {selectedRole === role.id && (
                             <div className="h-2 w-2 bg-white rounded-full" />
                           )}
@@ -479,7 +549,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={registerPassword}
                     onChange={(e) => setRegisterPassword(e.target.value)}
                     placeholder="Password"
@@ -491,21 +561,34 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
 
                 {registerPassword && (
                   <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                    <p className="text-xs font-medium text-gray-700 mb-2">Password requirements:</p>
+                    <p className="text-xs font-medium text-gray-700 mb-2">
+                      Password requirements:
+                    </p>
                     {passwordRequirements.map((req, index) => (
-                      <div key={index} className="flex items-center gap-2 text-xs">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 text-xs"
+                      >
                         {req.met ? (
                           <CheckCircle2 className="h-4 w-4 text-green-600" />
                         ) : (
                           <X className="h-4 w-4 text-gray-400" />
                         )}
-                        <span className={req.met ? 'text-green-600' : 'text-gray-500'}>
+                        <span
+                          className={
+                            req.met ? "text-green-600" : "text-gray-500"
+                          }
+                        >
                           {req.text}
                         </span>
                       </div>
@@ -516,7 +599,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     value={registerConfirmPassword}
                     onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                     placeholder="Confirm Password"
@@ -528,7 +611,11 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -544,7 +631,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                     Creating Account...
                   </>
                 ) : (
-                  'Create Account'
+                  "Create Account"
                 )}
               </Button>
 
@@ -553,7 +640,9 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                   <span className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-white text-gray-400">Or sign up with</span>
+                  <span className="px-4 bg-white text-gray-400">
+                    Or sign up with
+                  </span>
                 </div>
               </div>
 
@@ -599,7 +688,11 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({ open, on
                   disabled={socialLoading || isLoading || !selectedRole}
                   className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                   </svg>
                 </button>
