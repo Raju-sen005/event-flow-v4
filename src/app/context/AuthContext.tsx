@@ -180,7 +180,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
 
   signupCustomer: (
     name: string,
@@ -230,6 +230,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = await api.post("/auth/login", { email, password });
     localStorage.setItem("token", data.token);
     setUser(data.user);
+      return data.user; // ⭐ IMPORTANT
+
   };
 
   // 👤 CUSTOMER REGISTER (SIMPLE)

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import React, { useState } from "react";
+import axios from "axios";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router";
+import { motion } from "motion/react";
 import {
   FileText,
   Calendar,
@@ -13,170 +15,161 @@ import {
   MessageCircle,
   Edit,
   Trash2,
-  ChevronRight
-} from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { WithdrawBidModal } from '../../components/WithdrawBidModal';
-import { MessageModal } from '../../components/MessageModal';
+  ChevronRight,
+} from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { WithdrawBidModal } from "../../components/WithdrawBidModal";
+import { MessageModal } from "../../components/MessageModal";
 
-type BidStatus = 'pending' | 'shortlisted' | 'rejected' | 'awarded';
+type BidStatus = "pending" | "shortlisted" | "rejected" | "awarded";
 
 export const MyBids: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<BidStatus>('pending');
+  const [activeTab, setActiveTab] = useState<BidStatus>("pending");
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [selectedBid, setSelectedBid] = useState<any>(null);
 
-  const bids = [
-    {
-      id: '1',
-      requirementId: 'req-1',
-      title: 'Wedding Photography & Videography',
-      eventName: 'Singh Family Wedding',
-      customer: 'Vikram Singh',
-      eventDate: '2025-02-14',
-      bidAmount: 95000,
-      packageName: 'Premium Wedding Package',
-      submittedAt: '2025-01-15T10:30:00',
-      status: 'shortlisted' as BidStatus,
-      totalBids: 8,
-      rank: 2,
-      customerViewed: true,
-      notes: 'Customer requested portfolio samples'
-    },
-    {
-      id: '2',
-      requirementId: 'req-2',
-      title: 'Corporate Event Catering',
-      eventName: 'Tech Summit 2025',
-      customer: 'Neha Kapoor',
-      eventDate: '2025-02-10',
-      bidAmount: 350000,
-      packageName: 'Premium Corporate Package',
-      submittedAt: '2025-01-14T15:20:00',
-      status: 'pending' as BidStatus,
-      totalBids: 12,
-      customerViewed: false,
-      notes: null
-    },
-    {
-      id: '3',
-      requirementId: 'req-3',
-      title: 'Birthday Party Decoration',
-      eventName: '30th Birthday Bash',
-      customer: 'Riya Sharma',
-      eventDate: '2025-02-05',
-      bidAmount: 42000,
-      packageName: 'Deluxe Decoration Package',
-      submittedAt: '2025-01-13T09:15:00',
-      status: 'awarded' as BidStatus,
-      totalBids: 6,
-      rank: 1,
-      customerViewed: true,
-      notes: 'Congratulations! Customer selected your bid',
-      agreementStatus: 'pending'
-    },
-    {
-      id: '4',
-      requirementId: 'req-4',
-      title: 'Engagement Ceremony Photography',
-      eventName: 'Patel-Shah Engagement',
-      customer: 'Amit Patel',
-      eventDate: '2025-02-08',
-      bidAmount: 55000,
-      packageName: 'Standard Photography Package',
-      submittedAt: '2025-01-12T14:45:00',
-      status: 'rejected' as BidStatus,
-      totalBids: 15,
-      customerViewed: true,
-      notes: 'Customer selected another vendor'
-    },
-    {
-      id: '5',
-      requirementId: 'req-5',
-      title: 'Wedding Reception Catering',
-      eventName: 'Gupta Wedding Reception',
-      customer: 'Priya Gupta',
-      eventDate: '2025-02-18',
-      bidAmount: 625000,
-      packageName: 'Grand Reception Package',
-      submittedAt: '2025-01-14T11:00:00',
-      status: 'pending' as BidStatus,
-      totalBids: 18,
-      customerViewed: true,
-      notes: null
-    },
-  ];
+  const [bids, setBids] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const tabs = [
-    { id: 'pending' as BidStatus, label: 'Pending', count: bids.filter(b => b.status === 'pending').length },
-    { id: 'shortlisted' as BidStatus, label: 'Shortlisted', count: bids.filter(b => b.status === 'shortlisted').length },
-    { id: 'awarded' as BidStatus, label: 'Awarded', count: bids.filter(b => b.status === 'awarded').length },
-    { id: 'rejected' as BidStatus, label: 'Rejected', count: bids.filter(b => b.status === 'rejected').length },
+    {
+      id: "pending",
+      label: "Pending",
+      count: bids.filter((b) => b.status === "pending").length,
+    },
+    {
+      id: "shortlisted",
+      label: "Shortlisted",
+      count: bids.filter((b) => b.status === "shortlisted").length,
+    },
+    {
+      id: "awarded",
+      label: "Awarded",
+      count: bids.filter((b) => b.status === "accepted").length,
+    },
+    {
+      id: "rejected",
+      label: "Rejected",
+      count: bids.filter((b) => b.status === "rejected").length,
+    },
   ];
 
-  const filteredBids = bids.filter(bid => bid.status === activeTab);
+  const filteredBids = bids.filter((bid) => {
+    if (activeTab === "awarded") return bid.status === "accepted";
+    return bid.status === activeTab;
+  });
+
+  useEffect(() => {
+    const fetchMyBids = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get("http://localhost:5000/api/bids/my-bids", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("My Bids API Response:", res.data.data);
+        setBids(res.data.data);
+      } catch (error) {
+        console.error("Fetch bids error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyBids();
+  }, []);
 
   const getStatusConfig = (status: BidStatus) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return {
           icon: Clock,
-          color: 'text-yellow-600',
-          bg: 'bg-yellow-50',
-          border: 'border-yellow-200',
-          label: 'Under Review'
+          color: "text-yellow-600",
+          bg: "bg-yellow-50",
+          border: "border-yellow-200",
+          label: "Under Review",
         };
-      case 'shortlisted':
+      case "shortlisted":
         return {
           icon: CheckCircle,
-          color: 'text-blue-600',
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          label: 'Shortlisted'
+          color: "text-blue-600",
+          bg: "bg-blue-50",
+          border: "border-blue-200",
+          label: "Shortlisted",
         };
-      case 'awarded':
+      case "awarded":
         return {
           icon: Award,
-          color: 'text-green-600',
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          label: 'Awarded'
+          color: "text-green-600",
+          bg: "bg-green-50",
+          border: "border-green-200",
+          label: "Awarded",
         };
-      case 'rejected':
+      case "rejected":
         return {
           icon: XCircle,
-          color: 'text-red-600',
-          bg: 'bg-red-50',
-          border: 'border-red-200',
-          label: 'Not Selected'
+          color: "text-red-600",
+          bg: "bg-red-50",
+          border: "border-red-200",
+          label: "Not Selected",
         };
     }
   };
 
   const getTimeSince = (date: string) => {
-    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    const seconds = Math.floor(
+      (new Date().getTime() - new Date(date).getTime()) / 1000,
+    );
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor(seconds / 3600);
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    return 'Just now';
+
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    return "Just now";
   };
 
-  const handleWithdrawBid = (reason: string) => {
-    console.log(`Bid withdrawn for reason: ${reason}`);
-    // In a real app, this would call an API
+  const handleWithdrawBid = async (reason: string) => {
+    const token = localStorage.getItem("token");
+
+    await axios.delete(`http://localhost:5000/api/bids/${selectedBid.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setBids((prev) => prev.filter((b) => b.id !== selectedBid.id));
+
     setWithdrawModalOpen(false);
-    setSelectedBid(null);
   };
 
-  const handleSendMessage = (message: string, attachments?: File[]) => {
-    console.log(`Message sent: ${message}`, attachments);
-    // In a real app, this would call an API
-    setMessageModalOpen(false);
-    setSelectedBid(null);
+  const handleSendMessage = async (message: string) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "http://localhost:5000/api/messages",
+        {
+          bidId: selectedBid.id,
+          message,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      alert("Message sent successfully");
+
+      setMessageModalOpen(false);
+      setSelectedBid(null);
+    } catch (error) {
+      console.error("Send message error:", error);
+    }
   };
 
   return (
@@ -184,7 +177,9 @@ export const MyBids: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-[#16232A] mb-2">My Bids</h1>
-        <p className="text-[#16232A]/70">Track and manage all your bid submissions</p>
+        <p className="text-[#16232A]/70">
+          Track and manage all your bid submissions
+        </p>
       </div>
 
       {/* Stats Overview */}
@@ -199,7 +194,9 @@ export const MyBids: React.FC = () => {
               <Clock className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#16232A]">{tabs[0].count}</p>
+              <p className="text-2xl font-bold text-[#16232A]">
+                {tabs[0].count}
+              </p>
               <p className="text-sm text-[#16232A]/70">Pending</p>
             </div>
           </div>
@@ -216,7 +213,9 @@ export const MyBids: React.FC = () => {
               <CheckCircle className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#16232A]">{tabs[1].count}</p>
+              <p className="text-2xl font-bold text-[#16232A]">
+                {tabs[1].count}
+              </p>
               <p className="text-sm text-[#16232A]/70">Shortlisted</p>
             </div>
           </div>
@@ -233,7 +232,9 @@ export const MyBids: React.FC = () => {
               <Award className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#16232A]">{tabs[2].count}</p>
+              <p className="text-2xl font-bold text-[#16232A]">
+                {tabs[2].count}
+              </p>
               <p className="text-sm text-[#16232A]/70">Awarded</p>
             </div>
           </div>
@@ -250,7 +251,9 @@ export const MyBids: React.FC = () => {
               <XCircle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#16232A]">{tabs[3].count}</p>
+              <p className="text-2xl font-bold text-[#16232A]">
+                {tabs[3].count}
+              </p>
               <p className="text-sm text-[#16232A]/70">Rejected</p>
             </div>
           </div>
@@ -264,11 +267,11 @@ export const MyBids: React.FC = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => setActiveTab(tab.id as BidStatus)}
                 className={`px-6 py-4 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? 'border-[#075056] text-[#075056]'
-                    : 'border-transparent text-[#16232A]/70 hover:text-[#16232A]'
+                    ? "border-[#075056] text-[#075056]"
+                    : "border-transparent text-[#16232A]/70 hover:text-[#16232A]"
                 }`}
               >
                 {tab.label}
@@ -310,7 +313,9 @@ export const MyBids: React.FC = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`px-3 py-1 ${statusConfig.bg} ${statusConfig.color} text-xs rounded-full font-medium flex items-center gap-1`}>
+                          <span
+                            className={`px-3 py-1 ${statusConfig.bg} ${statusConfig.color} text-xs rounded-full font-medium flex items-center gap-1`}
+                          >
                             <StatusIcon className="h-3 w-3" />
                             {statusConfig.label}
                           </span>
@@ -322,92 +327,132 @@ export const MyBids: React.FC = () => {
                           )}
                         </div>
                         <Link
-                          to={`/vendor/requirements/${bid.requirementId}`}
+                          to={`/vendor/requirements/${bid.event_id}`}
                           className="text-lg font-semibold text-[#16232A] hover:text-[#075056]"
                         >
                           {bid.title}
                         </Link>
-                        <p className="text-sm text-[#16232A]/70">{bid.eventName}</p>
+                        <p className="text-sm text-[#16232A]/70">
+                          {bid.eventName}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-[#075056]">
-                          ₹{bid.bidAmount.toLocaleString('en-IN')}
+                          ₹{bid.price?.toLocaleString("en-IN")}
                         </p>
-                        <p className="text-xs text-[#16232A]/50">Your bid amount</p>
+                        <p className="text-xs text-[#16232A]/50">
+                          Your bid amount
+                        </p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <p className="text-xs text-[#16232A]/50 mb-1">Customer</p>
-                        <p className="text-sm font-medium text-[#16232A]">{bid.customer}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[#16232A]/50 mb-1">Event Date</p>
+                        <p className="text-xs text-[#16232A]/50 mb-1">
+                          Customer
+                        </p>
                         <p className="text-sm font-medium text-[#16232A]">
-                          {new Date(bid.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                          {bid.Event?.CustomerProfile?.firstName || "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-[#16232A]/50 mb-1">Package</p>
-                        <p className="text-sm font-medium text-[#16232A]">{bid.packageName}</p>
+                        <p className="text-xs text-[#16232A]/50 mb-1">
+                          Event Date
+                        </p>
+                        <p className="text-sm font-medium text-[#16232A]">
+                          {bid.Event?.date
+                            ? new Date(bid.Event.date).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                },
+                              )
+                            : "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs text-[#16232A]/50 mb-1">Submitted</p>
-                        <p className="text-sm font-medium text-[#16232A]">{getTimeSince(bid.submittedAt)}</p>
+                        <p className="text-xs text-[#16232A]/50 mb-1">
+                          Package
+                        </p>
+                        <p className="text-sm font-medium text-[#16232A]">
+                          {bid.package_name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-[#16232A]/50 mb-1">
+                          Submitted
+                        </p>
+                        <p className="text-sm font-medium text-[#16232A]">
+                          {getTimeSince(bid.createdAt)}
+                        </p>
                       </div>
                     </div>
 
-                    {bid.status === 'shortlisted' && bid.rank && (
+                    {bid.status === "shortlisted" && bid.rank && (
                       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-sm text-blue-700">
-                          🎯 You're ranked #{bid.rank} out of {bid.totalBids} bids
+                          🎯 You're ranked #{bid.rank} out of {bid.totalBids}{" "}
+                          bids
                         </p>
                       </div>
                     )}
 
                     {bid.notes && (
-                      <div className={`mb-4 p-3 rounded-lg border ${statusConfig.border} ${statusConfig.bg}`}>
+                      <div
+                        className={`mb-4 p-3 rounded-lg border ${statusConfig.border} ${statusConfig.bg}`}
+                      >
                         <div className="flex items-start gap-2">
-                          <AlertCircle className={`h-4 w-4 ${statusConfig.color} flex-shrink-0 mt-0.5`} />
+                          <AlertCircle
+                            className={`h-4 w-4 ${statusConfig.color} flex-shrink-0 mt-0.5`}
+                          />
                           <p className="text-sm text-[#16232A]">{bid.notes}</p>
                         </div>
                       </div>
                     )}
 
-                    {bid.status === 'awarded' && bid.agreementStatus === 'pending' && (
-                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium text-[#16232A] mb-1">Action Required</p>
-                            <p className="text-sm text-[#16232A]/70">Agreement is ready for your signature</p>
+                    {bid.status === "awarded" &&
+                      bid.agreementStatus === "pending" && (
+                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-[#16232A] mb-1">
+                                Action Required
+                              </p>
+                              <p className="text-sm text-[#16232A]/70">
+                                Agreement is ready for your signature
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     <div className="flex gap-2">
-                      {bid.status === 'awarded' && (
+                      {bid.status === "awarded" && (
                         <>
-                          <Link to={`/vendor/events/${bid.id}`} className="flex-1">
+                          <Link
+                            to={`/vendor/events/${bid.id}`}
+                            className="flex-1"
+                          >
                             <Button className="w-full bg-[#075056] hover:bg-[#075056]/90 text-white">
                               View Event Details
                             </Button>
                           </Link>
-                          {bid.agreementStatus === 'pending' && (
+                          {bid.agreementStatus === "pending" && (
                             <Link to={`/vendor/agreements/${bid.id}`}>
-                              <Button variant="outline">
-                                Sign Agreement
-                              </Button>
+                              <Button variant="outline">Sign Agreement</Button>
                             </Link>
                           )}
                         </>
                       )}
-                      
-                      {bid.status === 'pending' && (
+
+                      {bid.status === "pending" && (
                         <>
-                          <Link to={`/vendor/bids/${bid.id}/detail`} className="flex-1">
+                          <Link
+                            to={`/vendor/bids/${bid.id}/detail`}
+                            className="flex-1"
+                          >
                             <Button variant="outline" className="w-full gap-2">
                               <ChevronRight className="h-4 w-4" />
                               View & Negotiate
@@ -444,7 +489,7 @@ export const MyBids: React.FC = () => {
                         </>
                       )}
 
-                      {bid.status === 'shortlisted' && (
+                      {bid.status === "shortlisted" && (
                         <>
                           <Button
                             variant="outline"
@@ -457,7 +502,7 @@ export const MyBids: React.FC = () => {
                             <MessageCircle className="h-4 w-4" />
                             Chat with Customer
                           </Button>
-                          <Link to={`/vendor/requirements/${bid.requirementId}`}>
+                          <Link to={`/vendor/requirements/${bid.event_id}`}>
                             <Button variant="outline" className="gap-2">
                               View Requirement
                               <ChevronRight className="h-4 w-4" />
@@ -466,8 +511,11 @@ export const MyBids: React.FC = () => {
                         </>
                       )}
 
-                      {bid.status === 'rejected' && (
-                        <Link to={`/vendor/requirements/${bid.requirementId}`} className="flex-1">
+                      {bid.status === "rejected" && (
+                        <Link
+                          to={`/vendor/requirements/${bid.event_id}`}
+                          className="flex-1"
+                        >
                           <Button variant="outline" className="w-full gap-2">
                             View Requirement
                             <ChevronRight className="h-4 w-4" />

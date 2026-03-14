@@ -63,21 +63,26 @@ const handleLogin = async (e: React.FormEvent) => {
   setError("");
 
   try {
-    await login(email, password);
+
+    const loggedUser = await login(email, password);
+
     onOpenChange(false);
 
-    if (user?.role === "customer") {
-      navigate("/customer/dashboard");
-    } 
-    else if (user?.role === "vendor") {
+    if (loggedUser.role === "vendor") {
       navigate("/vendor/dashboard");
-    } 
-    else if (user?.role === "event-planner" || user?.role === "freelance-planner") {
+    }
+    else if (
+      loggedUser.role === "event-planner" ||
+      loggedUser.role === "freelance-planner"
+    ) {
       navigate("/planner/dashboard");
+    }
+    else {
+      navigate("/customer/dashboard");
     }
 
   } catch (err: any) {
-    setError(err.message || "Invalid credentials");
+    setError(err.message || "Invalid email or password");
   } finally {
     setLoading(false);
   }

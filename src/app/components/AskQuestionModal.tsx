@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -6,13 +7,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { X, Loader2, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner';
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { X, Loader2, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 
 interface AskQuestionModalProps {
   isOpen: boolean;
@@ -27,32 +28,52 @@ export const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
   requirementId,
   requirementTitle,
 }) => {
-  const [subject, setSubject] = useState('');
-  const [question, setQuestion] = useState('');
+  const [subject, setSubject] = useState("");
+  const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!subject.trim() || !question.trim()) {
-      toast.error('Please fill in all fields');
+      toast.error("Please fill in all fields");
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      toast.success('Question sent successfully!');
-      setSubject('');
-      setQuestion('');
-      setIsLoading(false);
+    try {
+      setIsLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "http://localhost:5000/api/questions/ask",
+        {
+          requirementId,
+          subject,
+          question,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      toast.success("Question sent successfully!");
+
+      setSubject("");
+      setQuestion("");
       onClose();
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send question");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
     if (!isLoading) {
-      setSubject('');
-      setQuestion('');
+      setSubject("");
+      setQuestion("");
       onClose();
     }
   };
@@ -85,7 +106,10 @@ export const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
         <div className="space-y-4 mt-4">
           <div>
-            <Label htmlFor="subject" className="text-sm font-medium text-[#16232A]">
+            <Label
+              htmlFor="subject"
+              className="text-sm font-medium text-[#16232A]"
+            >
               Subject
             </Label>
             <Input
@@ -99,7 +123,10 @@ export const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="question" className="text-sm font-medium text-[#16232A]">
+            <Label
+              htmlFor="question"
+              className="text-sm font-medium text-[#16232A]"
+            >
               Your Question
             </Label>
             <Textarea
@@ -114,18 +141,14 @@ export const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> The customer will receive your question and can respond directly. 
-              You'll be notified when they reply.
+              <strong>Note:</strong> The customer will receive your question and
+              can respond directly. You'll be notified when they reply.
             </p>
           </div>
         </div>
 
         <DialogFooter className="mt-6">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button

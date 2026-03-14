@@ -75,7 +75,8 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 <div>
                   <h2 className="font-semibold text-[#16232A]">Send Message</h2>
                   <p className="text-sm text-[#16232A]/70">
-                    To: {bid.customer} (Customer)
+                    {/* To: {bid.customer} (Customer) */}
+                    To: {bid.Event?.CustomerProfile?.firstName || "Customer"}
                   </p>
                 </div>
               </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -20,6 +21,9 @@ export const RequirementsFeed: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Record<string, any>>({});
+
+  const [requirements, setRequirements] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -66,147 +70,194 @@ export const RequirementsFeed: React.FC = () => {
     },
   ];
 
-  const requirements = [
-    {
-      id: '1',
-      title: 'Wedding Photography & Videography',
-      customer: 'Vikram Singh',
-      eventType: 'Wedding',
-      eventName: 'Singh Family Wedding',
-      date: '2025-02-14',
-      location: 'Jaipur, Rajasthan',
-      budget: { min: 80000, max: 120000 },
-      category: 'photography',
-      guests: 500,
-      description: 'Looking for professional wedding photographer and videographer for a traditional Rajasthani wedding ceremony.',
-      postedAt: '2 hours ago',
-      applicants: 8,
-      status: 'Open',
-      requirements: [
-        '2 photographers, 1 videographer',
-        'Traditional and candid shots',
-        'Drone coverage',
-        'Same day highlights video'
-      ]
-    },
-    {
-      id: '2',
-      title: 'Corporate Event Catering (500 guests)',
-      customer: 'Neha Kapoor',
-      eventType: 'Corporate',
-      eventName: 'Annual Tech Summit 2025',
-      date: '2025-02-10',
-      location: 'BKC, Mumbai',
-      budget: { min: 300000, max: 400000 },
-      category: 'catering',
-      guests: 500,
-      description: 'Premium catering service required for corporate tech summit. Multi-cuisine buffet with live counters.',
-      postedAt: '5 hours ago',
-      applicants: 12,
-      status: 'Open',
-      requirements: [
-        'Breakfast, Lunch, Dinner',
-        'Hi-tea and snacks',
-        'Live food counters',
-        'Vegetarian and non-vegetarian options'
-      ]
-    },
-    {
-      id: '3',
-      title: 'Engagement Ceremony Decoration',
-      customer: 'Amit Patel',
-      eventType: 'Engagement',
-      eventName: 'Patel-Shah Engagement',
-      date: '2025-02-08',
-      location: 'Ahmedabad, Gujarat',
-      budget: { min: 60000, max: 90000 },
-      category: 'decoration',
-      guests: 200,
-      description: 'Traditional yet modern engagement ceremony decoration with floral arrangements.',
-      postedAt: '1 day ago',
-      applicants: 15,
-      status: 'Open',
-      requirements: [
-        'Stage decoration',
-        'Entrance and pathway decoration',
-        'Table centerpieces',
-        'Lighting setup'
-      ]
-    },
-    {
-      id: '4',
-      title: 'Birthday Party Entertainment & DJ',
-      customer: 'Riya Sharma',
-      eventType: 'Birthday',
-      eventName: '30th Birthday Bash',
-      date: '2025-02-05',
-      location: 'Pune, Maharashtra',
-      budget: { min: 35000, max: 50000 },
-      category: 'entertainment',
-      guests: 100,
-      description: 'Looking for DJ and entertainment services for 30th birthday party. Bollywood and international music.',
-      postedAt: '1 day ago',
-      applicants: 6,
-      status: 'Open',
-      requirements: [
-        'Professional DJ with equipment',
-        'Sound system',
-        'Lighting effects',
-        '4-5 hours service'
-      ]
-    },
-    {
-      id: '5',
-      title: 'Wedding Reception Catering',
-      customer: 'Priya Gupta',
-      eventType: 'Wedding',
-      eventName: 'Gupta Wedding Reception',
-      date: '2025-02-18',
-      location: 'Delhi NCR',
-      budget: { min: 500000, max: 700000 },
-      category: 'catering',
-      guests: 800,
-      description: 'Grand wedding reception catering with multiple cuisines and live stations.',
-      postedAt: '2 days ago',
-      applicants: 18,
-      status: 'Open',
-      requirements: [
-        'Multi-cuisine buffet',
-        'Live food counters',
-        'Dessert station',
-        'Welcome drinks'
-      ]
-    },
-    {
-      id: '6',
-      title: 'Pre-Wedding Photoshoot Location',
-      customer: 'Rohan Malhotra',
-      eventType: 'Wedding',
-      eventName: 'Malhotra Pre-Wedding',
-      date: '2025-02-12',
-      location: 'Udaipur, Rajasthan',
-      budget: { min: 150000, max: 200000 },
-      category: 'photography',
-      guests: 10,
-      description: 'Destination pre-wedding photoshoot at heritage locations in Udaipur.',
-      postedAt: '3 days ago',
-      applicants: 10,
-      status: 'Open',
-      requirements: [
-        '2 day shoot',
-        'Multiple locations',
-        'Drone shots',
-        'Edited photos and video'
-      ]
-    },
-  ];
+  // const requirements = [
+  //   {
+  //     id: '1',
+  //     title: 'Wedding Photography & Videography',
+  //     customer: 'Vikram Singh',
+  //     eventType: 'Wedding',
+  //     eventName: 'Singh Family Wedding',
+  //     date: '2025-02-14',
+  //     location: 'Jaipur, Rajasthan',
+  //     budget: { min: 80000, max: 120000 },
+  //     category: 'photography',
+  //     guests: 500,
+  //     description: 'Looking for professional wedding photographer and videographer for a traditional Rajasthani wedding ceremony.',
+  //     postedAt: '2 hours ago',
+  //     applicants: 8,
+  //     status: 'Open',
+  //     requirements: [
+  //       '2 photographers, 1 videographer',
+  //       'Traditional and candid shots',
+  //       'Drone coverage',
+  //       'Same day highlights video'
+  //     ]
+  //   },
+  //   {
+  //     id: '2',
+  //     title: 'Corporate Event Catering (500 guests)',
+  //     customer: 'Neha Kapoor',
+  //     eventType: 'Corporate',
+  //     eventName: 'Annual Tech Summit 2025',
+  //     date: '2025-02-10',
+  //     location: 'BKC, Mumbai',
+  //     budget: { min: 300000, max: 400000 },
+  //     category: 'catering',
+  //     guests: 500,
+  //     description: 'Premium catering service required for corporate tech summit. Multi-cuisine buffet with live counters.',
+  //     postedAt: '5 hours ago',
+  //     applicants: 12,
+  //     status: 'Open',
+  //     requirements: [
+  //       'Breakfast, Lunch, Dinner',
+  //       'Hi-tea and snacks',
+  //       'Live food counters',
+  //       'Vegetarian and non-vegetarian options'
+  //     ]
+  //   },
+  //   {
+  //     id: '3',
+  //     title: 'Engagement Ceremony Decoration',
+  //     customer: 'Amit Patel',
+  //     eventType: 'Engagement',
+  //     eventName: 'Patel-Shah Engagement',
+  //     date: '2025-02-08',
+  //     location: 'Ahmedabad, Gujarat',
+  //     budget: { min: 60000, max: 90000 },
+  //     category: 'decoration',
+  //     guests: 200,
+  //     description: 'Traditional yet modern engagement ceremony decoration with floral arrangements.',
+  //     postedAt: '1 day ago',
+  //     applicants: 15,
+  //     status: 'Open',
+  //     requirements: [
+  //       'Stage decoration',
+  //       'Entrance and pathway decoration',
+  //       'Table centerpieces',
+  //       'Lighting setup'
+  //     ]
+  //   },
+  //   {
+  //     id: '4',
+  //     title: 'Birthday Party Entertainment & DJ',
+  //     customer: 'Riya Sharma',
+  //     eventType: 'Birthday',
+  //     eventName: '30th Birthday Bash',
+  //     date: '2025-02-05',
+  //     location: 'Pune, Maharashtra',
+  //     budget: { min: 35000, max: 50000 },
+  //     category: 'entertainment',
+  //     guests: 100,
+  //     description: 'Looking for DJ and entertainment services for 30th birthday party. Bollywood and international music.',
+  //     postedAt: '1 day ago',
+  //     applicants: 6,
+  //     status: 'Open',
+  //     requirements: [
+  //       'Professional DJ with equipment',
+  //       'Sound system',
+  //       'Lighting effects',
+  //       '4-5 hours service'
+  //     ]
+  //   },
+  //   {
+  //     id: '5',
+  //     title: 'Wedding Reception Catering',
+  //     customer: 'Priya Gupta',
+  //     eventType: 'Wedding',
+  //     eventName: 'Gupta Wedding Reception',
+  //     date: '2025-02-18',
+  //     location: 'Delhi NCR',
+  //     budget: { min: 500000, max: 700000 },
+  //     category: 'catering',
+  //     guests: 800,
+  //     description: 'Grand wedding reception catering with multiple cuisines and live stations.',
+  //     postedAt: '2 days ago',
+  //     applicants: 18,
+  //     status: 'Open',
+  //     requirements: [
+  //       'Multi-cuisine buffet',
+  //       'Live food counters',
+  //       'Dessert station',
+  //       'Welcome drinks'
+  //     ]
+  //   },
+  //   {
+  //     id: '6',
+  //     title: 'Pre-Wedding Photoshoot Location',
+  //     customer: 'Rohan Malhotra',
+  //     eventType: 'Wedding',
+  //     eventName: 'Malhotra Pre-Wedding',
+  //     date: '2025-02-12',
+  //     location: 'Udaipur, Rajasthan',
+  //     budget: { min: 150000, max: 200000 },
+  //     category: 'photography',
+  //     guests: 10,
+  //     description: 'Destination pre-wedding photoshoot at heritage locations in Udaipur.',
+  //     postedAt: '3 days ago',
+  //     applicants: 10,
+  //     status: 'Open',
+  //     requirements: [
+  //       '2 day shoot',
+  //       'Multiple locations',
+  //       'Drone shots',
+  //       'Edited photos and video'
+  //     ]
+  //   },
+  // ];
+
+  useEffect(() => {
+
+  const fetchRequirements = async () => {
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:5000/api/events/vendor",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setRequirements(res.data.data);
+
+    } catch (error) {
+      console.error("Fetch events error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchRequirements();
+
+}, []);
 
   const filteredRequirements = requirements.filter(req => {
-    const matchesCategory = selectedCategory === 'all' || req.category === selectedCategory;
-    const matchesSearch = req.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         req.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+
+  const matchesCategory =
+    selectedCategory === "all" ||
+    req.services?.some(
+      (s: any) =>
+        s.service_name.toLowerCase() === selectedCategory
+    );
+
+  const matchesSearch =
+    req.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    req.notes?.toLowerCase().includes(searchQuery.toLowerCase());
+
+  return matchesCategory && matchesSearch;
+
+});
+
+  if (loading) {
+  return (
+    <div className="text-center py-20">
+      Loading events...
+    </div>
+  );
+}
 
   return (
     <div className="space-y-6">
@@ -288,7 +339,7 @@ export const RequirementsFeed: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
-                      {req.eventType}
+                      {req.services?.[0]?.service_name}
                     </span>
                     <span className={`px-3 py-1 text-xs rounded-full font-medium ${
                       req.status === 'Open' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'
@@ -296,7 +347,7 @@ export const RequirementsFeed: React.FC = () => {
                       {req.status}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-[#16232A] mb-1">{req.title}</h3>
+                  <h3 className="font-semibold text-[#16232A] mb-1">{req.name}</h3>
                   <p className="text-sm text-[#16232A]/70">{req.eventName}</p>
                 </div>
                 <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
@@ -305,7 +356,7 @@ export const RequirementsFeed: React.FC = () => {
               </div>
 
               {/* Description */}
-              <p className="text-sm text-[#16232A]/70 mb-4 line-clamp-2">{req.description}</p>
+              <p className="text-sm text-[#16232A]/70 mb-4 line-clamp-2">{req.notes}</p>
 
               {/* Event Details */}
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -327,7 +378,7 @@ export const RequirementsFeed: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs text-[#16232A]/50">Guests</p>
-                    <p className="text-sm font-medium text-[#16232A]">{req.guests}</p>
+                    <p className="text-sm font-medium text-[#16232A]">{req.guest }</p>
                   </div>
                 </div>
 
@@ -348,7 +399,7 @@ export const RequirementsFeed: React.FC = () => {
                   <div>
                     <p className="text-xs text-[#16232A]/50">Budget</p>
                     <p className="text-sm font-medium text-[#075056]">
-                      ₹{(req.budget.min / 1000).toFixed(0)}k - ₹{(req.budget.max / 1000).toFixed(0)}k
+                      ₹{req.budget?.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -358,17 +409,17 @@ export const RequirementsFeed: React.FC = () => {
               <div className="mb-4">
                 <p className="text-xs text-[#16232A]/50 mb-2">Key Requirements:</p>
                 <div className="flex flex-wrap gap-2">
-                  {req.requirements.slice(0, 3).map((requirement, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-1 bg-gray-50 text-[#16232A] text-xs rounded"
-                    >
-                      {requirement}
-                    </span>
-                  ))}
-                  {req.requirements.length > 3 && (
+                  {req.services?.map((service: any, idx: number) => (
+  <span
+    key={idx}
+    className="px-2 py-1 bg-gray-50 text-[#16232A] text-xs rounded"
+  >
+    {service.service_name}
+  </span>
+))}
+                  {req.services?.length > 3 && (
                     <span className="px-2 py-1 bg-gray-50 text-[#16232A]/50 text-xs rounded">
-                      +{req.requirements.length - 3} more
+                      +{req.services.length - 3} more
                     </span>
                   )}
                 </div>
@@ -379,7 +430,7 @@ export const RequirementsFeed: React.FC = () => {
                 <div className="flex items-center gap-4 text-xs text-[#16232A]/50">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {req.postedAt}
+                    {new Date(req.createdAt).toLocaleDateString("en-IN")}
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="h-3 w-3" />

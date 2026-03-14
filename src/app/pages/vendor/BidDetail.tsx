@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router";
+import { motion } from "motion/react";
 import {
   ArrowLeft,
   Calendar,
@@ -15,174 +15,240 @@ import {
   Mail,
   AlertCircle,
   Award,
-  XCircle
-} from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { NegotiationPanel, NegotiationData, NegotiationOffer } from '../../components/NegotiationPanel';
-import { VendorFinalizationModal } from '../../components/VendorFinalizationModal';
-
-type BidStatus = 'submitted' | 'under_negotiation' | 'negotiation_locked' | 'finalization_requested' | 'finalized' | 'declined';
+  XCircle,
+} from "lucide-react";
+import { Button } from "../../components/ui/button";
+import {
+  NegotiationPanel,
+  NegotiationData,
+  NegotiationOffer,
+} from "../../components/NegotiationPanel";
+import { VendorFinalizationModal } from "../../components/VendorFinalizationModal";
+import axios from "axios";
+import { useEffect } from "react";
+type BidStatus =
+  | "submitted"
+  | "under_negotiation"
+  | "negotiation_locked"
+  | "finalization_requested"
+  | "finalized"
+  | "declined";
 
 export const BidDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [bidStatus, setBidStatus] = useState<BidStatus>('finalization_requested'); // Simulating finalization request
+  const [bidStatus, setBidStatus] = useState<BidStatus>(
+    "finalization_requested",
+  ); // Simulating finalization request
   const [showFinalizationModal, setShowFinalizationModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [totalBids, setTotalBids] = useState(0);
 
   // Mock bid data
-  const bid = {
-    id: id || '1',
-    requirementTitle: 'Wedding Photography & Videography',
-    eventName: 'Singh Family Wedding',
-    customer: {
-      name: 'Vikram Singh',
-      location: 'Delhi, India',
-      phone: '+91 98765 12345',
-      email: 'vikram@email.com'
-    },
-    eventDate: '2025-02-14',
-    eventLocation: 'The Grand Palace, Delhi',
-    myBidAmount: 95000,
-    myTimeline: '7 days delivery',
-    myDeliverables: [
-      '8 hours coverage',
-      '500+ edited photos',
-      'Online gallery',
-      'Print album (30 pages)',
-      '2 photographers',
-      'Drone shots'
-    ],
-    submittedAt: '2025-01-15T10:30:00',
-    status: 'pending',
-    totalBids: 8,
-    isFinalized: false,
-    requirements: {
-      budget: '₹80,000 - ₹1,00,000',
-      guestCount: 200,
-      venueType: 'Banquet Hall',
-      additionalNotes: 'Looking for candid photography style with creative shots'
+  const [bid, setBid] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchNegotiation = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `http://localhost:5000/api/negotiations/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setNegotiation(res.data.data);
+    } catch (error) {
+      console.error("Fetch negotiation error:", error);
     }
   };
 
-  // Mock negotiation data
-  const [negotiation, setNegotiation] = useState<NegotiationData>({
-    bidId: bid.id,
-    originalPrice: bid.myBidAmount,
-    originalTimeline: bid.myTimeline,
-    status: 'awaiting_vendor',
-    offers: [
-      {
-        id: 'offer-1',
-        proposedBy: 'customer',
-        proposerName: bid.customer.name,
-        price: 85000,
-        timeline: '7 days delivery',
-        notes: 'Can we reduce the price a bit? Our budget is slightly lower.',
-        status: 'pending',
-        createdAt: '2025-01-20T10:00:00'
-      }
-    ]
-  });
+  useEffect(() => {
+    const fetchBid = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-  const handleSubmitOffer = (price: number, timeline: string, notes: string) => {
-    const newOffer: NegotiationOffer = {
-      id: `offer-${Date.now()}`,
-      proposedBy: 'vendor',
-      proposerName: 'You',
-      price,
-      timeline,
-      notes,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+        const res = await axios.get(`http://localhost:5000/api/bids/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setBid(res.data.data);
+        fetchTotalBids(res.data.data.Event.id);
+      } catch (error) {
+        console.error("Fetch bid error:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setNegotiation(prev => ({
-      ...prev,
-      status: 'awaiting_customer',
-      offers: [...prev.offers.map(o => ({ ...o, status: o.status === 'pending' ? 'countered' as const : o.status })), newOffer]
-    }));
-  };
+    if (!id) return;
 
-  const handleAcceptOffer = (offerId: string) => {
-    const offer = negotiation.offers.find(o => o.id === offerId);
-    if (offer) {
-      setNegotiation(prev => ({
-        ...prev,
-        status: 'accepted',
-        finalizedPrice: offer.price,
-        finalizedTimeline: offer.timeline,
-        offers: prev.offers.map(o =>
-          o.id === offerId ? { ...o, status: 'accepted' as const } : o
-        )
-      }));
+    fetchBid();
+    fetchNegotiation();
+  }, [id]);
+
+  const fetchTotalBids = async (eventId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `http://localhost:5000/api/bids/event/${eventId}/total-bids`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setTotalBids(res.data.totalBids);
+    } catch (error) {
+      console.error("Total bids error:", error);
+    }
+  };
+  // Mock negotiation data
+  const [negotiation, setNegotiation] = useState<NegotiationData | null>(null);
+
+  const handleSubmitOffer = async (
+    price: number,
+    timeline: string,
+    notes: string,
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "http://localhost:5000/api/negotiations/offer",
+        {
+          bidId: id,
+          price,
+          timeline,
+          notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      fetchNegotiation();
+    } catch (error) {
+      console.error("Submit offer error:", error);
     }
   };
 
-  const handleRejectOffer = (offerId: string) => {
-    setNegotiation(prev => ({
-      ...prev,
-      status: 'rejected',
-      offers: prev.offers.map(o =>
-        o.id === offerId ? { ...o, status: 'rejected' as const } : o
-      )
-    }));
+  const handleAcceptOffer = async (offerId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.patch(
+        `http://localhost:5000/api/negotiations/offer/${offerId}/accept`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      fetchNegotiation();
+    } catch (error) {
+      console.error("Accept offer error:", error);
+    }
+  };
+
+  const handleRejectOffer = async (offerId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.patch(
+        `http://localhost:5000/api/negotiations/offer/${offerId}/reject`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      fetchNegotiation();
+    } catch (error) {
+      console.error("Reject offer error:", error);
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'awarded':
-        return 'bg-green-100 text-green-700';
-      case 'shortlisted':
-        return 'bg-blue-100 text-blue-700';
-      case 'rejected':
-        return 'bg-red-100 text-red-700';
+      case "awarded":
+        return "bg-green-100 text-green-700";
+      case "shortlisted":
+        return "bg-blue-100 text-blue-700";
+      case "rejected":
+        return "bg-red-100 text-red-700";
       default:
-        return 'bg-yellow-100 text-yellow-700';
+        return "bg-yellow-100 text-yellow-700";
     }
   };
 
   const handleAcceptFinalization = async () => {
     setIsProcessing(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Update state
-    setBidStatus('finalized');
-    setNegotiation(prev => ({
-      ...prev,
-      status: 'locked'
-    }));
-    
+    setBidStatus("finalized");
+    setNegotiation((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        status: "locked",
+      };
+    });
+
     setIsProcessing(false);
     setShowFinalizationModal(false);
-    
+
     // Show success message
-    alert('Finalization accepted! Agreement is being generated.');
+    alert("Finalization accepted! Agreement is being generated.");
   };
 
   const handleDeclineFinalization = async (reason: string) => {
     setIsProcessing(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Update state
-    setBidStatus('declined');
-    
+    setBidStatus("declined");
+
     setIsProcessing(false);
     setShowFinalizationModal(false);
-    
+
     // Show decline message
     alert(`Finalization declined. Reason: ${reason}`);
   };
+
+  if (loading) {
+    return <div className="text-center py-20">Loading bid details...</div>;
+  }
+
+  if (!bid) {
+    return <div className="text-center py-20">Bid not found</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Back Button */}
       <button
-        onClick={() => navigate('/vendor/bids')}
+        onClick={() => navigate("/vendor/bids")}
         className="flex items-center gap-2 text-[#16232A]/70 hover:text-[#16232A]"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -193,7 +259,7 @@ export const BidDetail: React.FC = () => {
         {/* Left Column - Bid Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Finalization Request Banner */}
-          {bidStatus === 'finalization_requested' && (
+          {bidStatus === "finalization_requested" && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -204,12 +270,18 @@ export const BidDetail: React.FC = () => {
                   <div className="flex items-center gap-3 mb-3">
                     <AlertCircle className="h-8 w-8" />
                     <div>
-                      <h2 className="text-xl font-bold">Finalization Request</h2>
-                      <p className="text-white/90 text-sm">The customer wants to finalize you for this event</p>
+                      <h2 className="text-xl font-bold">
+                        Finalization Request
+                      </h2>
+                      <p className="text-white/90 text-sm">
+                        The customer wants to finalize you for this event
+                      </p>
                     </div>
                   </div>
                   <p className="text-white/80 text-sm mb-4">
-                    {bid.customer.name} has sent a finalization request. Review the terms and decide whether to accept or decline.
+                    {bid.Event?.CustomerProfile?.firstName} has sent a
+                    finalization request. Review the terms and decide whether to
+                    accept or decline.
                   </p>
                   <Button
                     onClick={() => setShowFinalizationModal(true)}
@@ -223,7 +295,7 @@ export const BidDetail: React.FC = () => {
           )}
 
           {/* Finalized Banner */}
-          {bidStatus === 'finalized' && (
+          {bidStatus === "finalized" && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -233,14 +305,17 @@ export const BidDetail: React.FC = () => {
                 <CheckCircle className="h-8 w-8" />
                 <div>
                   <h2 className="text-xl font-bold">Booking Finalized!</h2>
-                  <p className="text-white/90 text-sm">This booking has been confirmed. Agreement is being generated.</p>
+                  <p className="text-white/90 text-sm">
+                    This booking has been confirmed. Agreement is being
+                    generated.
+                  </p>
                 </div>
               </div>
             </motion.div>
           )}
 
           {/* Declined Banner */}
-          {bidStatus === 'declined' && (
+          {bidStatus === "declined" && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -250,7 +325,9 @@ export const BidDetail: React.FC = () => {
                 <XCircle className="h-8 w-8" />
                 <div>
                   <h2 className="text-xl font-bold">Finalization Declined</h2>
-                  <p className="text-white/90 text-sm">You have declined this finalization request.</p>
+                  <p className="text-white/90 text-sm">
+                    You have declined this finalization request.
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -264,10 +341,14 @@ export const BidDetail: React.FC = () => {
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-[#16232A] mb-2">{bid.requirementTitle}</h1>
-                <p className="text-lg text-gray-600">{bid.eventName}</p>
+                <h1 className="text-2xl font-bold text-[#16232A] mb-2">
+                  {bid.Event?.name}
+                </h1>
+                <p className="text-lg text-gray-600">{bid.Event?.name}</p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(bid.status)}`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(bid.status)}`}
+              >
                 {bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}
               </span>
             </div>
@@ -278,11 +359,7 @@ export const BidDetail: React.FC = () => {
                 <div>
                   <p className="text-xs text-gray-600">Event Date</p>
                   <p className="font-semibold text-[#16232A]">
-                    {new Date(bid.eventDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
+                    {new Date(bid.Event?.date).toLocaleDateString("en-IN")}
                   </p>
                 </div>
               </div>
@@ -290,43 +367,63 @@ export const BidDetail: React.FC = () => {
                 <MapPin className="h-5 w-5 text-[#075056]" />
                 <div>
                   <p className="text-xs text-gray-600">Venue</p>
-                  <p className="font-semibold text-[#16232A]">{bid.eventLocation}</p>
+                  <p className="font-semibold text-[#16232A]">
+                    {bid.Event?.location}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-4">
-              <h3 className="font-semibold text-[#16232A] mb-3">Customer Information</h3>
+              <h3 className="font-semibold text-[#16232A] mb-3">
+                Customer Information
+              </h3>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-2 text-sm">
                   <User className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700">{bid.customer.name}</span>
+                  <span className="text-gray-700">
+                    {" "}
+                    {bid.Event?.CustomerProfile?.firstName || "-"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700">{bid.customer.phone}</span>
+                  <span className="text-gray-700">
+                    {bid.Event?.CustomerProfile?.phone || "-"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700">{bid.customer.email}</span>
+                  <span className="text-gray-700">
+                    {bid.Event?.CustomerProfile?.User?.email || "-"}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-4 mt-4">
-              <h3 className="font-semibold text-[#16232A] mb-3">Requirements</h3>
+              <h3 className="font-semibold text-[#16232A] mb-3">
+                Requirements
+              </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-gray-600">Budget Range</p>
-                  <p className="font-medium text-[#16232A]">{bid.requirements.budget}</p>
+                  <p className="font-medium text-[#16232A]">
+                    {/* ₹{bid.price?.toLocaleString("en-IN")} */}₹
+                    {bid.Event?.budget?.toLocaleString("en-IN")}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Guest Count</p>
-                  <p className="font-medium text-[#16232A]">{bid.requirements.guestCount} guests</p>
+                  <p className="font-medium text-[#16232A]">
+                    {bid.Event?.guest} guests
+                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-xs text-gray-600 mb-1">Additional Notes</p>
-                  <p className="text-sm text-gray-700">{bid.requirements.additionalNotes}</p>
+                  <p className="text-sm text-gray-700">
+                    {bid.Event?.notes || "-"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -348,7 +445,9 @@ export const BidDetail: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Your Bid Amount</p>
-                  <p className="text-2xl font-bold text-[#FF5B04]">₹{bid.myBidAmount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-[#FF5B04]">
+                    ₹{bid.price?.toLocaleString("en-IN")}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-[#075056]/5 rounded-lg border border-[#075056]/20">
@@ -357,16 +456,23 @@ export const BidDetail: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Timeline</p>
-                  <p className="text-xl font-bold text-[#075056]">{bid.myTimeline}</p>
+                  <p className="text-xl font-bold text-[#075056]">
+                    {bid.timeline}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold text-[#16232A] mb-3">Your Deliverables</h3>
+              <h3 className="font-semibold text-[#16232A] mb-3">
+                Your Deliverables
+              </h3>
               <div className="grid md:grid-cols-2 gap-2">
-                {bid.myDeliverables.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                {bid.myDeliverables?.map((item: string, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 text-sm text-gray-700"
+                  >
                     <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                     {item}
                   </div>
@@ -381,23 +487,25 @@ export const BidDetail: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <NegotiationPanel
-              negotiation={negotiation}
-              userRole="vendor"
-              vendorName="You"
-              customerName={bid.customer.name}
-              onSubmitOffer={handleSubmitOffer}
-              onAcceptOffer={handleAcceptOffer}
-              onRejectOffer={handleRejectOffer}
-              isLocked={bid.isFinalized || negotiation.status === 'locked'}
-            />
+            {negotiation && (
+              <NegotiationPanel
+                negotiation={negotiation}
+                userRole="vendor"
+                vendorName="You"
+                customerName={bid.Event?.CustomerProfile?.firstName}
+                onSubmitOffer={handleSubmitOffer}
+                onAcceptOffer={handleAcceptOffer}
+                onRejectOffer={handleRejectOffer}
+                isLocked={bid?.isFinalized || negotiation?.status === "locked"}
+              />
+            )}
           </motion.div>
         </div>
 
         {/* Right Column - Actions */}
         <div className="space-y-4">
           {/* Status Card */}
-          {negotiation.status === 'accepted' && (
+          {negotiation?.status === "accepted" && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -406,13 +514,14 @@ export const BidDetail: React.FC = () => {
               <CheckCircle className="h-12 w-12 mb-4" />
               <h3 className="text-xl font-bold mb-2">Agreement Reached!</h3>
               <p className="text-white/90 text-sm">
-                The customer has accepted your offer. Wait for them to finalize the booking.
+                The customer has accepted your offer. Wait for them to finalize
+                the booking.
               </p>
             </motion.div>
           )}
 
           {/* Awaiting Customer */}
-          {negotiation.status === 'awaiting_customer' && (
+          {negotiation?.status === "awaiting_customer" && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -421,7 +530,8 @@ export const BidDetail: React.FC = () => {
               <Clock className="h-12 w-12 mb-4" />
               <h3 className="text-xl font-bold mb-2">Awaiting Response</h3>
               <p className="text-white/90 text-sm">
-                Your offer has been sent. The customer will review and respond soon.
+                Your offer has been sent. The customer will review and respond
+                soon.
               </p>
             </motion.div>
           )}
@@ -442,7 +552,11 @@ export const BidDetail: React.FC = () => {
               <FileText className="h-4 w-4 mr-2" />
               View Requirement
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={negotiation.status === 'locked'}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={negotiation?.status === "locked"}
+            >
               <Award className="h-4 w-4 mr-2" />
               Edit Bid
             </Button>
@@ -455,21 +569,27 @@ export const BidDetail: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-xl p-4 border border-gray-200"
           >
-            <h3 className="font-semibold text-[#16232A] mb-3">Bid Statistics</h3>
+            <h3 className="font-semibold text-[#16232A] mb-3">
+              Bid Statistics
+            </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Submitted</span>
                 <span className="font-medium text-[#16232A]">
-                  {new Date(bid.submittedAt).toLocaleDateString()}
+                  {new Date(bid.createdAt).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Total Bids</span>
-                <span className="font-medium text-[#16232A]">{bid.totalBids} vendors</span>
+                <span className="font-medium text-[#16232A]">
+                  {totalBids} vendors
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Status</span>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(bid.status)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(bid.status)}`}
+                >
                   {bid.status}
                 </span>
               </div>
@@ -486,9 +606,12 @@ export const BidDetail: React.FC = () => {
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-blue-900 mb-1">Negotiation Tip</h4>
+                <h4 className="font-semibold text-blue-900 mb-1">
+                  Negotiation Tip
+                </h4>
                 <p className="text-xs text-blue-700">
-                  Be flexible with pricing but maintain the value of your services. Clear communication helps reach agreements faster.
+                  Be flexible with pricing but maintain the value of your
+                  services. Clear communication helps reach agreements faster.
                 </p>
               </div>
             </div>
@@ -502,10 +625,10 @@ export const BidDetail: React.FC = () => {
         onClose={() => setShowFinalizationModal(false)}
         onAccept={handleAcceptFinalization}
         onDecline={handleDeclineFinalization}
-        customerName={bid.customer.name}
-        eventName={bid.eventName}
-        finalPrice={negotiation.finalizedPrice || bid.myBidAmount}
-        timeline={negotiation.finalizedTimeline || bid.myTimeline}
+        customerName={bid.Event?.CustomerProfile?.firstName}
+        eventName={bid.Event?.name}
+        finalPrice={negotiation?.finalizedPrice || bid.price}
+        timeline={negotiation?.finalizedTimeline || bid.timeline}
         deliverables={bid.myDeliverables}
         isProcessing={isProcessing}
       />

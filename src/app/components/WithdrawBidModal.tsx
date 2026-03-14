@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, AlertTriangle } from 'lucide-react';
-import { Button } from './ui/button';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { X, AlertTriangle } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface WithdrawBidModalProps {
   isOpen: boolean;
@@ -16,24 +16,24 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
   onWithdraw,
   bid,
 }) => {
-  const [reason, setReason] = useState('');
-  const [selectedReason, setSelectedReason] = useState('');
+  const [reason, setReason] = useState("");
+  const [selectedReason, setSelectedReason] = useState("");
 
   const predefinedReasons = [
-    'No longer available on event date',
-    'Unable to meet requirements',
-    'Pricing concerns',
-    'Found better opportunity',
-    'Customer not responding',
-    'Other',
+    "No longer available on event date",
+    "Unable to meet requirements",
+    "Pricing concerns",
+    "Found better opportunity",
+    "Customer not responding",
+    "Other",
   ];
 
   const handleConfirm = () => {
-    const finalReason = selectedReason === 'Other' ? reason : selectedReason;
+    const finalReason = selectedReason === "Other" ? reason : selectedReason;
     if (finalReason) {
       onWithdraw(finalReason);
-      setReason('');
-      setSelectedReason('');
+      setReason("");
+      setSelectedReason("");
     }
   };
 
@@ -67,7 +67,9 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
                 </div>
                 <div>
                   <h2 className="font-semibold text-[#16232A]">Withdraw Bid</h2>
-                  <p className="text-sm text-[#16232A]/70">This action cannot be undone</p>
+                  <p className="text-sm text-[#16232A]/70">
+                    This action cannot be undone
+                  </p>
                 </div>
               </div>
               <button
@@ -82,10 +84,13 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
             <div className="p-6 space-y-6">
               {/* Bid Details */}
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <p className="text-sm text-[#16232A]/70 mb-1">You are withdrawing bid for:</p>
+                <p className="text-sm text-[#16232A]/70 mb-1">
+                  You are withdrawing bid for:
+                </p>
                 <p className="font-semibold text-[#16232A] mb-2">{bid.title}</p>
                 <p className="text-xl font-bold text-[#075056]">
-                  ₹{bid.bidAmount.toLocaleString('en-IN')}
+                  {/* ₹{bid.bidAmount.toLocaleString('en-IN')} */}₹
+                  {bid.price?.toLocaleString("en-IN")}
                 </p>
               </div>
 
@@ -94,10 +99,12 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
                 <div className="flex gap-3">
                   <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-red-900 mb-1">Important Notice</p>
+                    <p className="font-medium text-red-900 mb-1">
+                      Important Notice
+                    </p>
                     <p className="text-sm text-red-700">
-                      Withdrawing a bid may affect your vendor rating and future opportunities. 
-                      The customer will be notified immediately.
+                      Withdrawing a bid may affect your vendor rating and future
+                      opportunities. The customer will be notified immediately.
                     </p>
                   </div>
                 </div>
@@ -106,7 +113,8 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
               {/* Reason Selection */}
               <div>
                 <label className="block text-sm font-medium text-[#16232A] mb-3">
-                  Please select a reason for withdrawal: <span className="text-red-500">*</span>
+                  Please select a reason for withdrawal:{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2">
                   {predefinedReasons.map((reasonOption) => (
@@ -114,8 +122,8 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
                       key={reasonOption}
                       className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedReason === reasonOption
-                          ? 'border-[#075056] bg-[#075056]/5'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? "border-[#075056] bg-[#075056]/5"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
                       <input
@@ -126,17 +134,20 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
                         onChange={(e) => setSelectedReason(e.target.value)}
                         className="h-4 w-4 text-[#075056] focus:ring-[#075056]"
                       />
-                      <span className="text-sm text-[#16232A]">{reasonOption}</span>
+                      <span className="text-sm text-[#16232A]">
+                        {reasonOption}
+                      </span>
                     </label>
                   ))}
                 </div>
               </div>
 
               {/* Custom Reason (if "Other" is selected) */}
-              {selectedReason === 'Other' && (
+              {selectedReason === "Other" && (
                 <div>
                   <label className="block text-sm font-medium text-[#16232A] mb-2">
-                    Please specify reason: <span className="text-red-500">*</span>
+                    Please specify reason:{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     value={reason}
@@ -151,16 +162,15 @@ export const WithdrawBidModal: React.FC<WithdrawBidModalProps> = ({
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex gap-3 rounded-b-xl">
-              <Button
-                onClick={onClose}
-                variant="outline"
-                className="flex-1"
-              >
+              <Button onClick={onClose} variant="outline" className="flex-1">
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={!selectedReason || (selectedReason === 'Other' && !reason.trim())}
+                disabled={
+                  !selectedReason ||
+                  (selectedReason === "Other" && !reason.trim())
+                }
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Withdraw Bid

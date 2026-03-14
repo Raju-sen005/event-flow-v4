@@ -96,31 +96,35 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({
   // const { login, user } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  e.preventDefault();
+  setIsLoading(true);
+  setError("");
 
-    try {
-      await login(loginEmail, loginPassword);
+  try {
 
-      onOpenChange(false);
+    const loggedUser = await login(loginEmail, loginPassword);
 
-      if (user?.role === "vendor") {
-        navigate("/vendor/dashboard");
-      } else if (
-        user?.role === "event-planner" ||
-        user?.role === "freelance-planner"
-      ) {
-        navigate("/planner/dashboard");
-      } else {
-        navigate("/customer/dashboard");
-      }
-    } catch (err: any) {
-      setError(err.message || "Invalid email or password");
-    } finally {
-      setIsLoading(false);
+    onOpenChange(false);
+
+    if (loggedUser.role === "vendor") {
+      navigate("/vendor/dashboard");
     }
-  };
+    else if (
+      loggedUser.role === "event-planner" ||
+      loggedUser.role === "freelance-planner"
+    ) {
+      navigate("/planner/dashboard");
+    }
+    else {
+      navigate("/customer/dashboard");
+    }
+
+  } catch (err: any) {
+    setError(err.message || "Invalid email or password");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleGoogleLogin = async () => {
     setSocialLoading(true);
