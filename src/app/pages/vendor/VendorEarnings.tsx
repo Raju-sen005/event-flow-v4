@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import axios from "axios";
+import { useEffect } from "react";
 import {
   DollarSign,
   TrendingUp,
@@ -20,79 +22,125 @@ export const VendorEarnings: React.FC = () => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [selectedSlab, setSelectedSlab] = useState<PaymentSlab | null>(null);
   const [showCashConfirmModal, setShowCashConfirmModal] = useState(false);
-
+  const [events, setEvents] = useState<EventPayment[]>([]);
+const [kycStatus, setKycStatus] = useState<VendorKYC | null>(null);
+const [loading, setLoading] = useState(true);
   // Mock KYC status
-  const kycStatus: VendorKYC = {
-    isVerified: false,
-    documents: {
-      panCard: true,
-      aadhaar: true,
-      bankDetails: false,
-      gst: false
-    },
-    status: 'pending'
-  };
+  // const kycStatus: VendorKYC = {
+  //   isVerified: false,
+  //   documents: {
+  //     panCard: true,
+  //     aadhaar: true,
+  //     bankDetails: false,
+  //     gst: false
+  //   },
+  //   status: 'pending'
+  // };
 
   // Mock earnings data
-  const events: EventPayment[] = [
-    {
-      id: 'payment-1',
-      eventId: 'event-1',
-      eventName: 'Singh Family Wedding',
-      vendorId: 'vendor-1',
-      vendorName: 'You',
-      customerId: 'customer-1',
-      customerName: 'Vikram Singh',
-      totalAmount: 90000,
-      agreementId: 'agreement-1',
-      agreementDate: '2025-01-23',
-      isFinalized: true,
-      createdAt: '2025-01-23T10:00:00',
-      updatedAt: '2025-01-23T10:00:00',
-      slabs: [
-        {
-          id: 'slab-1',
-          slabNumber: 1,
-          name: 'Booking Advance',
-          percentage: 30,
-          amount: 27000,
-          dueDate: '2025-01-25',
-          status: 'completed',
-          paymentMethod: 'online',
-          paidAt: '2025-01-23T14:30:00',
-          transactionId: 'TXN123456789'
-        },
-        {
-          id: 'slab-2',
-          slabNumber: 2,
-          name: 'Pre-Event Payment',
-          percentage: 40,
-          amount: 36000,
-          dueDate: '2025-02-07',
-          status: 'cash_awaiting_vendor',
-          paymentMethod: 'cash',
-          cashConfirmedByVendor: false
-        },
-        {
-          id: 'slab-3',
-          slabNumber: 3,
-          name: 'Final Payment',
-          percentage: 30,
-          amount: 27000,
-          dueDate: '2025-02-21',
-          status: 'pending'
-        }
-      ]
-    }
-  ];
+  // const events: EventPayment[] = [
+  //   {
+  //     id: 'payment-1',
+  //     eventId: 'event-1',
+  //     eventName: 'Singh Family Wedding',
+  //     vendorId: 'vendor-1',
+  //     vendorName: 'You',
+  //     customerId: 'customer-1',
+  //     customerName: 'Vikram Singh',
+  //     totalAmount: 90000,
+  //     agreementId: 'agreement-1',
+  //     agreementDate: '2025-01-23',
+  //     isFinalized: true,
+  //     createdAt: '2025-01-23T10:00:00',
+  //     updatedAt: '2025-01-23T10:00:00',
+  //     slabs: [
+  //       {
+  //         id: 'slab-1',
+  //         slabNumber: 1,
+  //         name: 'Booking Advance',
+  //         percentage: 30,
+  //         amount: 27000,
+  //         dueDate: '2025-01-25',
+  //         status: 'completed',
+  //         paymentMethod: 'online',
+  //         paidAt: '2025-01-23T14:30:00',
+  //         transactionId: 'TXN123456789'
+  //       },
+  //       {
+  //         id: 'slab-2',
+  //         slabNumber: 2,
+  //         name: 'Pre-Event Payment',
+  //         percentage: 40,
+  //         amount: 36000,
+  //         dueDate: '2025-02-07',
+  //         status: 'cash_awaiting_vendor',
+  //         paymentMethod: 'cash',
+  //         cashConfirmedByVendor: false
+  //       },
+  //       {
+  //         id: 'slab-3',
+  //         slabNumber: 3,
+  //         name: 'Final Payment',
+  //         percentage: 30,
+  //         amount: 27000,
+  //         dueDate: '2025-02-21',
+  //         status: 'pending'
+  //       }
+  //     ]
+  //   }
+  // ];
 
-  const totalEarnings = events.reduce((sum, event) => sum + event.totalAmount, 0);
-  const receivedAmount = events.reduce((sum, event) => 
-    sum + event.slabs
-      .filter(s => s.status === 'completed')
-      .reduce((slabSum, s) => slabSum + s.amount, 0),
-    0
-  );
+  const token = localStorage.getItem("token");
+
+useEffect(() => {
+  fetchVendorPayments();
+  fetchKYCStatus();
+}, []);
+
+const fetchVendorPayments = async () => {
+  try {
+
+    const res = await axios.get("http://localhost:5000/api/payments/vendor", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    // console.log("PAYMENTS API:", res.data.data);
+    console.log("FULL RESPONSE:", res.data);
+
+    setEvents(res.data.data || []);
+
+  } catch (error) {
+    console.error("Error fetching payments", error);
+  }
+};
+
+const fetchKYCStatus = async () => {
+  try {
+    const res = await axios.get("/api/vendor/kyc-status", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    setKycStatus(res.data.data);
+  } catch (error) {
+    console.error("Error fetching KYC", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const totalEarnings = events.reduce(
+  (sum, event) => sum + Number(event.totalAmount || 0),
+  0
+);
+  const receivedAmount = events.reduce((sum, event) => {
+  const slabs = event.slabs || [];
+
+const completed = slabs
+  .filter((s) => s.status === "completed")
+  .reduce((slabSum, s) => slabSum + Number(s.amount || 0), 0);
+
+  return sum + completed;
+}, 0);
   const pendingAmount = totalEarnings - receivedAmount;
 
   const getStatusConfig = (status: PaymentStatus) => {
@@ -141,12 +189,48 @@ export const VendorEarnings: React.FC = () => {
     setShowCashConfirmModal(true);
   };
 
-  const handleCashConfirmation = () => {
-    alert('Cash payment confirmed! Sent to admin for approval.');
+  const handleCashConfirmation = async () => {
+  try {
+    await axios.post(
+      `/api/payments/confirm-cash/${selectedSlab?.id}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    fetchVendorPayments(); // refresh data
+
     setShowCashConfirmModal(false);
     setSelectedSlab(null);
-  };
+  } catch (error) {
+    console.error("Cash confirmation failed", error);
+  }
+};
 
+const handleWithdraw = async () => {
+  try {
+    await axios.post(
+      "/api/vendor/withdraw",
+      { amount: receivedAmount },
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    alert("Withdrawal request submitted");
+
+  } catch (error) {
+    console.error("Withdraw failed", error);
+  }
+};
+if (loading) {
+  return (
+    <div className="flex justify-center items-center h-[400px]">
+      <p>Loading payments...</p>
+    </div>
+  );
+}
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -157,7 +241,7 @@ export const VendorEarnings: React.FC = () => {
         </div>
         <Button
           onClick={() => setShowWithdrawModal(true)}
-          disabled={!kycStatus.isVerified || receivedAmount === 0}
+          disabled={!kycStatus?.isVerified || receivedAmount === 0}
           className="bg-[#075056] hover:bg-[#075056]/90 text-white"
         >
           <DollarSign className="h-4 w-4 mr-2" />
@@ -166,7 +250,7 @@ export const VendorEarnings: React.FC = () => {
       </div>
 
       {/* KYC Warning */}
-      {!kycStatus.isVerified && (
+      {!kycStatus?.isVerified && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -257,13 +341,13 @@ export const VendorEarnings: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-[#075056]">₹{event.totalAmount.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-[#075056]">₹{Number(event.totalAmount || 0).toLocaleString()}</p>
               </div>
             </div>
 
             {/* Payment Slabs */}
             <div className="space-y-3">
-              {event.slabs.map((slab, slabIndex) => {
+              {(event.slabs || []).map((slab, slabIndex) => { 
                 const config = getStatusConfig(slab.status);
                 const StatusIcon = config.icon;
                 const needsConfirmation = slab.status === 'cash_awaiting_vendor';
@@ -362,9 +446,9 @@ export const VendorEarnings: React.FC = () => {
       {showWithdrawModal && (
         <WithdrawModal
           availableAmount={receivedAmount}
-          isKYCVerified={kycStatus.isVerified}
-          onClose={() => setShowWithdrawModal(false)}
-        />
+          isKYCVerified={kycStatus?.isVerified ?? false}
+          onClose={() => setShowWithdrawModal(false)} 
+          onWithdraw={handleWithdraw}       />
       )}
 
       {/* Cash Confirmation Modal */}
@@ -387,9 +471,19 @@ interface WithdrawModalProps {
   availableAmount: number;
   isKYCVerified: boolean;
   onClose: () => void;
+  onWithdraw: () => void;
 }
 
-const WithdrawModal: React.FC<WithdrawModalProps> = ({ availableAmount, isKYCVerified, onClose }) => {
+const WithdrawModal: React.FC<WithdrawModalProps> = ({
+  availableAmount,
+  isKYCVerified,
+  onClose,
+  onWithdraw
+}) => {
+  // function handleWithdraw(event: MouseEvent<HTMLButtonElement, MouseEvent>): void {
+  //   throw new Error('Function not implemented.');
+  // }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <motion.div
@@ -445,9 +539,12 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ availableAmount, isKYCVer
             Close
           </Button>
           {isKYCVerified && (
-            <Button className="flex-1 bg-[#075056] hover:bg-[#075056]/90 text-white">
-              Request Withdrawal
-            </Button>
+            <Button
+  onClick={onWithdraw}
+  className="flex-1 bg-[#075056] hover:bg-[#075056]/90 text-white"
+>
+  Request Withdrawal
+</Button>
           )}
         </div>
       </motion.div>
