@@ -174,6 +174,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  profileImage?: string | null; // 🔥 FIX
 }
 
 interface AuthContextType {
@@ -207,19 +208,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // 🔁 Auto login on refresh
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+  // useEffect(() => {
+  //   const initAuth = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       if (!token) return;
 
-        const { data } = await api.get("/customer/profile");
-        setUser(data);
-      } catch {
-        localStorage.removeItem("token");
-      } finally {
-        setIsLoading(false);
+  //       const { data } = await api.get("/customer/profile");
+  //       setUser(data);
+  //     } catch {
+  //       localStorage.removeItem("token");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   initAuth();
+  // }, []);
+
+  useEffect(() => {
+    const initAuth = () => {
+      const token = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
+      if (token && storedUser) {
+        setUser(JSON.parse(storedUser));
       }
+
+      setIsLoading(false);
     };
 
     initAuth();
@@ -229,9 +245,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     const { data } = await api.post("/auth/login", { email, password });
     localStorage.setItem("token", data.token);
-    setUser(data.user);
-      return data.user; // ⭐ IMPORTANT
+    localStorage.setItem("user", JSON.stringify(data.user)); // ⭐ ADD THIS
 
+    setUser(data.user);
+    return data.user; // ⭐ IMPORTANT
   };
 
   // 👤 CUSTOMER REGISTER (SIMPLE)
@@ -278,6 +295,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // 🚪 LOGOUT
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user"); // 🔥 ADD THIS
     setUser(null);
   };
 

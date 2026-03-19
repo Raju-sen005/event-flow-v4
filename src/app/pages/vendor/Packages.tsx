@@ -22,6 +22,8 @@ interface PackageItem {
   name: string;
   category: string;
   description: string;
+  images: string[];
+  video: string;
   price: string;
   inclusions: string[];
   exclusions: string[];
@@ -59,6 +61,8 @@ export const Packages: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [images, setImages] = useState<File[]>([]);
+  const [video, setVideo] = useState<File | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(
     null,
   );
@@ -76,6 +80,10 @@ export const Packages: React.FC = () => {
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [newInclusion, setNewInclusion] = useState("");
   const [newExclusion, setNewExclusion] = useState("");
+  const [preview, setPreview] = useState<{
+    type: "image" | "video";
+    url: string;
+  } | null>(null);
 
   const filteredPackages = packages.filter(
     (pkg) =>
@@ -155,60 +163,78 @@ export const Packages: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      if (modalMode === "add") {
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-        const res = await axios.post(
-  API_URL,
-  {
-    ...formData,
-    inclusions,
-    exclusions,
-    eventTypes,
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+      const form = new FormData();
 
-        setPackages([res.data.data, ...packages]);
-      } else if (modalMode === "edit" && selectedPackage) {
-       const token = localStorage.getItem("token");
+      // basic fields
+      form.append("name", formData.name);
+      form.append("category", formData.category);
+      form.append("description", formData.description);
+      form.append("price", formData.price);
+      form.append("status", formData.status);
 
-await axios.put(
-  `${API_URL}/${selectedPackage.id}`,
-  {
-    ...formData,
-    inclusions,
-    exclusions,
-    eventTypes,
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+      // arrays → stringify
+      form.append("inclusions", JSON.stringify(inclusions));
+      form.append("exclusions", JSON.stringify(exclusions));
+      form.append("eventTypes", JSON.stringify(eventTypes));
 
-        setPackages(
-          packages.map((pkg) =>
-            pkg.id === selectedPackage.id
-              ? {
-                  ...pkg,
-                  ...formData,
-                  inclusions,
-                  exclusions,
-                  event_types: eventTypes,
-                }
-              : pkg,
-          ),
-        );
+      // images (max 4)
+      if (images) {
+        Array.from(images).forEach((file) => {
+          form.append("images", file);
+        });
       }
 
+      // video (1)
+      if (video) {
+        form.append("video", video);
+      }
+
+      if (modalMode === "add") {
+        const res = await axios.post(API_URL, form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        setPackages([res.data.data, ...packages]);
+      }
+
+      if (modalMode === "edit" && selectedPackage) {
+        const form = new FormData();
+
+        form.append("name", formData.name);
+        form.append("category", formData.category);
+        form.append("description", formData.description);
+        form.append("price", formData.price);
+        form.append("status", formData.status);
+
+        form.append("inclusions", JSON.stringify(inclusions));
+        form.append("exclusions", JSON.stringify(exclusions));
+        form.append("eventTypes", JSON.stringify(eventTypes));
+
+        if (images) {
+          Array.from(images).forEach((file) => {
+            form.append("images", file);
+          });
+        }
+
+        if (video) {
+          form.append("video", video);
+        }
+
+        await axios.put(`${API_URL}/${selectedPackage.id}`, form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      }
       handleCloseModal();
-    } catch {
+    } catch (err) {
+      console.log(err);
       alert("Save failed");
     }
   };
@@ -227,11 +253,15 @@ await axios.put(
 
   const handleToggleStatus = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await axios.patch(`${API_URL}/${id}/status`, {}, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const res = await axios.patch(
+      `${API_URL}/${id}/status`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
 
     setPackages(
       packages.map((pkg) =>
@@ -275,12 +305,12 @@ await axios.put(
       try {
         const token = localStorage.getItem("token");
 
-const res = await axios.get(API_URL, {
-  headers: {
-    Authorization: `Bearer ${token}`
-  }
-});
-        
+        const res = await axios.get(API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         setPackages(res.data.data);
       } catch (err) {
         setError("Failed to load packages");
@@ -385,6 +415,38 @@ const res = await axios.get(API_URL, {
                       {pkg.price}
                     </span>
                   </div>
+                  <div className="flex flex-wrap gap-3 mt-3">
+                    {/* Images */}
+                    {Array.isArray(pkg.images) &&
+                      pkg.images.length > 0 &&
+                      pkg.images.map((img: string, i: number) => (
+                        <img
+                          key={i}
+                          src={`http://localhost:5000${img}`}
+                          className="w-20 h-20 object-cover rounded cursor-pointer hover:scale-105 transition"
+                          onClick={() =>
+                            setPreview({
+                              type: "image",
+                              url: `http://localhost:5000${img}`,
+                            })
+                          }
+                        />
+                      ))}
+
+                    {/* Video */}
+                    {pkg.video && (
+                      <video
+                        src={`http://localhost:5000${pkg.video}`}
+                        className="w-32 h-20 object-cover rounded cursor-pointer"
+                        onClick={() =>
+                          setPreview({
+                            type: "video",
+                            url: `http://localhost:5000${pkg.video}`,
+                          })
+                        }
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Actions */}
@@ -429,14 +491,17 @@ const res = await axios.get(API_URL, {
                     Applicable for:
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {pkg.event_types.map((eventType) => (
-                      <span
-                        key={eventType}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                      >
-                        {eventType}
-                      </span>
-                    ))}
+                    {Array.isArray(pkg.event_types)
+                      ? pkg.event_types.map((eventType) => (
+                          <span key={eventType}>{eventType}</span>
+                        ))
+                      : typeof pkg.event_types === "string"
+                        ? JSON.parse(pkg.event_types).map(
+                            (eventType: string) => (
+                              <span key={eventType}>{eventType}</span>
+                            ),
+                          )
+                        : null}
                   </div>
                 </div>
               )}
@@ -605,6 +670,107 @@ const res = await axios.get(API_URL, {
                 />
               </div>
 
+              {/* IMAGE UPLOAD */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Photos (Max 4)
+                </label>
+
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#075056] transition">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    id="imageUpload"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        const newFiles = Array.from(e.target.files);
+
+                        setImages((prev) => {
+                          const combined = [...prev, ...newFiles];
+
+                          // limit 4 images
+                          return combined.slice(0, 4);
+                        });
+                      }
+                    }}
+                  />
+
+                  <label htmlFor="imageUpload" className="cursor-pointer">
+                    <p className="text-gray-600">Click to upload images</p>
+                    <p className="text-xs text-gray-400">PNG, JPG (max 4)</p>
+                  </label>
+                </div>
+
+                {/* IMAGE PREVIEW */}
+                {images && images.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mt-3">
+                    {images.map((file: File, index: number) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          className="w-20 h-20 object-cover rounded"
+                        />
+
+                        {/* REMOVE BUTTON */}
+                        <button
+                          onClick={() =>
+                            setImages(images.filter((_, i) => i !== index))
+                          }
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* VIDEO UPLOAD */}
+              <div className="mt-4">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Video (1)
+                </label>
+
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#075056] transition">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    id="videoUpload"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setVideo(e.target.files[0]);
+                      }
+                    }}
+                  />
+
+                  <label htmlFor="videoUpload" className="cursor-pointer">
+                    <p className="text-gray-600">Click to upload video</p>
+                    <p className="text-xs text-gray-400">MP4, max 20MB</p>
+                  </label>
+                </div>
+
+                {/* VIDEO PREVIEW */}
+                {video && (
+                  <div className="mt-3 relative w-fit">
+                    <video
+                      src={URL.createObjectURL(video)}
+                      className="w-40 rounded"
+                    />
+
+                    {/* REMOVE */}
+                    <button
+                      onClick={() => setVideo(null)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
               {/* Inclusions */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
@@ -772,6 +938,32 @@ const res = await axios.get(API_URL, {
               </Button>
             </div>
           </motion.div>
+        </div>
+      )}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          {/* Close button */}
+          <button
+            onClick={() => setPreview(null)}
+            className="absolute top-5 right-5 text-white text-2xl"
+          >
+            ✕
+          </button>
+
+          {/* Content */}
+          {preview.type === "image" ? (
+            <img
+              src={preview.url}
+              className="max-w-[90%] max-h-[90%] rounded-lg shadow-lg"
+            />
+          ) : (
+            <video
+              src={preview.url}
+              controls
+              autoPlay
+              className="max-w-[90%] max-h-[90%] rounded-lg"
+            />
+          )}
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
+import React, { useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui/button";
 import {
   Briefcase,
   Search,
@@ -24,8 +24,8 @@ import {
   Receipt,
   ClipboardCheck,
   TrendingUp,
-  HeadphonesIcon
-} from 'lucide-react';
+  HeadphonesIcon,
+} from "lucide-react";
 // import { useAuth } from "@/app/context/AuthContext";
 const roleLabelMap: Record<string, string> = {
   vendor: "Vendor",
@@ -38,6 +38,7 @@ const roleLabelMap: Record<string, string> = {
 export const VendorLayout: React.FC = () => {
   const { user, logout } = useAuth();
   // const { user } = useAuth();
+  console.log(user);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,42 +47,48 @@ export const VendorLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const navigation = [
     {
-      category: 'MAIN',
+      category: "MAIN",
       items: [
-        { name: 'Dashboard', href: '/vendor/dashboard', icon: Home },
-        { name: 'Requirements', href: '/vendor/requirements', icon: Search },
-        { name: 'My Bids', href: '/vendor/bids', icon: FileText },
-        { name: 'Awarded Events', href: '/vendor/events', icon: Award },
-      ]
+        { name: "Dashboard", href: "/vendor/dashboard", icon: Home },
+        { name: "Requirements", href: "/vendor/requirements", icon: Search },
+        { name: "My Bids", href: "/vendor/bids", icon: FileText },
+        { name: "Awarded Events", href: "/vendor/events", icon: Award },
+      ],
     },
     {
-      category: 'SHOWCASE',
+      category: "SHOWCASE",
       items: [
-        { name: 'Portfolio', href: '/vendor/portfolio', icon: Image },
-        { name: 'Packages', href: '/vendor/packages', icon: Package },
-        { name: 'Ads & Promotions', href: '/vendor/ads', icon: TrendingUp },
-      ]
+        { name: "Portfolio", href: "/vendor/portfolio", icon: Image },
+        { name: "Packages", href: "/vendor/packages", icon: Package },
+        { name: "Ads & Promotions", href: "/vendor/ads", icon: TrendingUp },
+      ],
     },
     {
-      category: 'MANAGEMENT',
+      category: "MANAGEMENT",
       items: [
-        { name: 'Messages', href: '/vendor/messages', icon: MessageSquare },
-        { name: 'Deliverables', href: '/vendor/deliverables', icon: Upload },
-        { name: 'Attendance', href: '/vendor/attendance', icon: ClipboardCheck },
-        { name: 'Earnings', href: '/vendor/earnings', icon: DollarSign },
-        { name: 'Invoices', href: '/vendor/invoices', icon: Receipt },
-        { name: 'Profile', href: '/vendor/profile', icon: User },
-      ]
-    }
+        { name: "Messages", href: "/vendor/messages", icon: MessageSquare },
+        { name: "Deliverables", href: "/vendor/deliverables", icon: Upload },
+        {
+          name: "Attendance",
+          href: "/vendor/attendance",
+          icon: ClipboardCheck,
+        },
+        { name: "Earnings", href: "/vendor/earnings", icon: DollarSign },
+        { name: "Invoices", href: "/vendor/invoices", icon: Receipt },
+        { name: "Profile", href: "/vendor/profile", icon: User },
+      ],
+    },
   ];
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    return (
+      location.pathname === path || location.pathname.startsWith(path + "/")
+    );
   };
 
   return (
@@ -95,17 +102,22 @@ export const VendorLayout: React.FC = () => {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-50"
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
             <Link to="/vendor/dashboard" className="flex items-center gap-2">
               <div className="h-9 w-9 bg-[#075056] rounded-xl flex items-center justify-center">
                 <Briefcase className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#16232A]">EventFlow</span>
+              <span className="text-xl font-bold text-[#16232A]">
+                EventFlow
+              </span>
               <span className="hidden sm:inline text-sm text-[#075056] font-medium">
                 {user ? roleLabelMap[user.role] : ""}
               </span>
-
             </Link>
           </div>
 
@@ -126,11 +138,23 @@ export const VendorLayout: React.FC = () => {
               )}
             </button>
             <div className="hidden md:flex items-center gap-3 pl-3 border-l border-gray-200">
-              <div className="text-right">
-                <p className="font-medium text-[#16232A]">{user?.name}</p>
-                {/* {isDemo && (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Demo</span>
-                )} */}
+              <div className="flex items-center gap-2">
+                {/* Avatar */}
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                  <img
+                    src={
+                      user?.profileImage
+                        ? `http://localhost:5000${user.profileImage}`
+                        : `https://ui-avatars.com/api/?name=${user?.name}&background=075056&color=fff`
+                    }
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Name */}
+                <div className="text-right">
+                  <p className="font-medium text-[#16232A]">{user?.name}</p>
+                </div>
               </div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
@@ -142,8 +166,9 @@ export const VendorLayout: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed top-14 left-0 bottom-0 z-30 w-64 bg-white border-r border-gray-200 transition-transform duration-300 overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
+        className={`fixed top-14 left-0 bottom-0 z-30 w-64 bg-white border-r border-gray-200 transition-transform duration-300 overflow-y-auto ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
       >
         <nav className="p-4 space-y-6">
           {navigation.map((section, sectionIndex) => (
@@ -159,12 +184,15 @@ export const VendorLayout: React.FC = () => {
                       key={item.name}
                       to={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${active
-                          ? 'bg-[#075056] text-white font-medium'
-                          : 'text-gray-700 hover:bg-gray-50 font-normal'
-                        }`}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        active
+                          ? "bg-[#075056] text-white font-medium"
+                          : "text-gray-700 hover:bg-gray-50 font-normal"
+                      }`}
                     >
-                      <item.icon className={`h-[18px] w-[18px] flex-shrink-0 ${active ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                      <item.icon
+                        className={`h-[18px] w-[18px] flex-shrink-0 ${active ? "stroke-[2.5]" : "stroke-[2]"}`}
+                      />
                       {item.name}
                     </Link>
                   );
@@ -182,34 +210,43 @@ export const VendorLayout: React.FC = () => {
               <Link
                 to="/vendor/support"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive('/vendor/support')
-                    ? 'bg-[#075056] text-white font-medium'
-                    : 'text-gray-700 hover:bg-gray-50 font-normal'
-                  }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  isActive("/vendor/support")
+                    ? "bg-[#075056] text-white font-medium"
+                    : "text-gray-700 hover:bg-gray-50 font-normal"
+                }`}
               >
-                <HeadphonesIcon className={`h-[18px] w-[18px] flex-shrink-0 ${isActive('/vendor/support') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                <HeadphonesIcon
+                  className={`h-[18px] w-[18px] flex-shrink-0 ${isActive("/vendor/support") ? "stroke-[2.5]" : "stroke-[2]"}`}
+                />
                 Support
               </Link>
               <Link
                 to="/vendor/availability"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive('/vendor/availability')
-                    ? 'bg-[#075056] text-white font-medium'
-                    : 'text-gray-700 hover:bg-gray-50 font-normal'
-                  }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  isActive("/vendor/availability")
+                    ? "bg-[#075056] text-white font-medium"
+                    : "text-gray-700 hover:bg-gray-50 font-normal"
+                }`}
               >
-                <Calendar className={`h-[18px] w-[18px] flex-shrink-0 ${isActive('/vendor/availability') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                <Calendar
+                  className={`h-[18px] w-[18px] flex-shrink-0 ${isActive("/vendor/availability") ? "stroke-[2.5]" : "stroke-[2]"}`}
+                />
                 Availability
               </Link>
               <Link
                 to="/vendor/settings"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive('/vendor/settings')
-                    ? 'bg-[#075056] text-white font-medium'
-                    : 'text-gray-700 hover:bg-gray-50 font-normal'
-                  }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  isActive("/vendor/settings")
+                    ? "bg-[#075056] text-white font-medium"
+                    : "text-gray-700 hover:bg-gray-50 font-normal"
+                }`}
               >
-                <Settings className={`h-[18px] w-[18px] flex-shrink-0 ${isActive('/vendor/settings') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                <Settings
+                  className={`h-[18px] w-[18px] flex-shrink-0 ${isActive("/vendor/settings") ? "stroke-[2.5]" : "stroke-[2]"}`}
+                />
                 Settings
               </Link>
             </div>

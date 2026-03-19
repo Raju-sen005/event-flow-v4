@@ -27,6 +27,7 @@ import axios from "axios";
 
 interface VendorProfile {
   businessName: string;
+  profileImage: string;
   ownerName: string;
   category: string;
   location: string;
@@ -66,10 +67,12 @@ export const VendorProfile: React.FC = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   // Vendor profile state
   const emptyProfile: VendorProfile = {
     businessName: "",
+    profileImage: "",
     ownerName: "",
     category: "",
     location: "",
@@ -203,20 +206,39 @@ export const VendorProfile: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
 
+      // let res;
+
+      const formData = new FormData();
+
+      Object.entries(editedProfile).forEach(([key, value]) => {
+        formData.append(key, value as string);
+      });
+
+      if (profileImage) {
+        formData.append("profileImage", profileImage);
+      }
+
       let res;
 
       if (profileExists) {
-        // UPDATE
-        res = await axios.put(API_URL, editedProfile, config);
-        setVendorProfile(res.data.profile);
+        res = await axios.put(API_URL, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else {
-        // CREATE
-        res = await axios.post(API_URL, editedProfile, config);
-        setVendorProfile(res.data.profile);
-        setProfileExists(true);
+        res = await axios.post(API_URL, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
       }
 
       setIsEditingProfile(false);
+      setVendorProfile(res.data.profile);
+      setEditedProfile(res.data.profile);
       alert("Profile saved successfully");
     } catch (err: any) {
       alert(err.response?.data?.message || "Save failed");
@@ -324,6 +346,12 @@ export const VendorProfile: React.FC = () => {
                         {vendorProfile.businessName}
                       </p>
                     </div>
+                    {vendorProfile.profileImage && (
+                      <img
+                        src={`http://localhost:5000${vendorProfile.profileImage}`}
+                        className="w-24 h-24 rounded-full object-cover"
+                      />
+                    )}
                     <div>
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                         Owner Name
@@ -423,6 +451,57 @@ export const VendorProfile: React.FC = () => {
                         }
                         className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]/20 focus:border-[#FF5B04] transition-all"
                       />
+                    </div>
+                    <div className="flex flex-col items-center gap-3">
+                      <label className="text-sm font-semibold text-gray-700">
+                        Profile Image
+                      </label>
+
+                      {/* Avatar Preview */}
+                      <div className="relative group">
+                        <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-300">
+                          <img
+                            src={
+                              profileImage
+                                ? URL.createObjectURL(profileImage)
+                                : editedProfile.profileImage
+                                  ? `http://localhost:5000${editedProfile.profileImage}`
+                                  : "https://ui-avatars.com/api/?name=User&background=075056&color=fff"
+                            }
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        {/* Overlay */}
+                        <label
+                          htmlFor="profileUpload"
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-full cursor-pointer transition"
+                        >
+                          <span className="text-white text-xs">Change</span>
+                        </label>
+
+                        <input
+                          id="profileUpload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setProfileImage(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Actions */}
+                      {profileImage && (
+                        <button
+                          onClick={() => setProfileImage(null)}
+                          className="text-xs text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-[#16232A] mb-2 block">
