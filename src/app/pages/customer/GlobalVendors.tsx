@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import { useEffect } from "react";
 import axios from "axios";
-import { motion } from 'motion/react';
-import { EventPickerModal } from '@/app/components/modals/EventPickerModal';
+import { motion } from "motion/react";
+import { EventPickerModal } from "@/app/components/modals/EventPickerModal";
 import {
   Search,
   Filter,
@@ -19,8 +19,8 @@ import {
   Music,
   Sparkles,
   Eye,
-  Plus
-} from 'lucide-react';
+  Plus,
+} from "lucide-react";
 
 // Types
 type Vendor = {
@@ -40,76 +40,74 @@ type Vendor = {
 
 export const GlobalVendors: React.FC = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [priceFilter, setPriceFilter] = useState('all');
-  const [ratingFilter, setRatingFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [priceFilter, setPriceFilter] = useState("all");
+  const [ratingFilter, setRatingFilter] = useState("all");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  const delayDebounce = setTimeout(() => {
-    fetchVendors();
-  }, 400);
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchVendors();
+    }, 400);
 
-  return () => clearTimeout(delayDebounce);
-}, [searchQuery, categoryFilter]);
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery, categoryFilter]);
 
-const getPriceRange = (packages: any[]) => {
-  if (!packages || packages.length === 0) return "$";
+  const getPriceRange = (packages: any[]) => {
+    if (!packages || packages.length === 0) return "$";
 
-  const prices = packages.map((p) => Number(p.price));
-  const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+    const prices = packages.map((p) => Number(p.price));
+    const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
 
-  if (avg < 10000) return "$";
-  if (avg < 30000) return "$$";
-  if (avg < 70000) return "$$$";
-  return "$$$$";
-};
+    if (avg < 10000) return "$";
+    if (avg < 30000) return "$$";
+    if (avg < 70000) return "$$$";
+    return "$$$$";
+  };
 
-const fetchVendors = async () => {
-  try {
-    setLoading(true);
+  const fetchVendors = async () => {
+    try {
+      setLoading(true);
 
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/vendors`,
-      {
-        params: {
-          search: searchQuery || undefined,
-          category: categoryFilter !== "all" ? categoryFilter : undefined,
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/vendors`,
+        {
+          params: {
+            search: searchQuery || undefined,
+            category: categoryFilter !== "all" ? categoryFilter : undefined,
+          },
         },
-      }
-    );
+      );
 
-    const apiVendors = response.data.data;
-console.log("API RESPONSE:", response.data);
-    // Transform API response → match frontend Vendor type
-    const formattedVendors: Vendor[] = apiVendors.map((vendor: any) => ({
-      id: vendor.id,
-      name: vendor.businessName,
-      service: vendor.category,
-      category: vendor.category,
-      location: vendor.location,
-      rating: 4.5, // until rating system added
-      reviewCount: 0,
-      priceRange:
-        vendor.packages?.length > 0
-          ? getPriceRange(vendor.packages)
-          : "$",
-     verified: vendor.isVerified || false,
-      portfolio: vendor.portfolios?.length || 0,
-      experienceYears: vendor.experience || 0,
-    }));
+      const apiVendors = response.data.data;
+      console.log("API RESPONSE:", response.data);
+      // Transform API response → match frontend Vendor type
+      const formattedVendors: Vendor[] = apiVendors.map((vendor: any) => ({
+        id: vendor.id,
+        name: vendor.businessName,
+        service: vendor.category,
+        category: vendor.category,
+        location: vendor.location,
+        rating: 4.5, // until rating system added
+        reviewCount: 0,
+        priceRange:
+          vendor.packages?.length > 0 ? getPriceRange(vendor.packages) : "$",
+        verified: vendor.isVerified || false,
+        portfolio: vendor.portfolios?.length || 0,
+        experienceYears: vendor.experience || 0,
+      }));
 
-    setVendors(formattedVendors);
-  } catch (error) {
-    console.error("Failed to fetch vendors", error);
-  } finally {
-    setLoading(false);
-  }
-};
+      setVendors(formattedVendors);
+    } catch (error) {
+      console.error("Failed to fetch vendors", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   // Mock vendors data
   // const vendors: Vendor[] = [
   //   {
@@ -186,23 +184,25 @@ console.log("API RESPONSE:", response.data);
   //   const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
   //   const matchesPrice = priceFilter === 'all' || vendor.priceRange === priceFilter;
   //   const matchesRating = ratingFilter === 'all' || vendor.rating >= parseFloat(ratingFilter);
-    
+
   //   return matchesSearch && matchesCategory && matchesPrice && matchesRating;
   // });
 
   const filteredVendors = vendors.filter((vendor) => {
-  const matchesPrice =
-    priceFilter === "all" || vendor.priceRange === priceFilter;
+    const matchesPrice =
+      priceFilter === "all" || vendor.priceRange === priceFilter;
 
-  const matchesRating =
-    ratingFilter === "all" ||
-    vendor.rating >= parseFloat(ratingFilter);
+    const matchesRating =
+      ratingFilter === "all" || vendor.rating >= parseFloat(ratingFilter);
 
-  return matchesPrice && matchesRating;
-});
+    return matchesPrice && matchesRating;
+  });
 
   // Get unique categories
-  const categories = ['all', ...Array.from(new Set(vendors.map(v => v.category)))];
+  const categories = [
+    "all",
+    ...Array.from(new Set(vendors.map((v) => v.category))),
+  ];
 
   // Handle view profile
   const handleViewProfile = (vendorId: string) => {
@@ -218,7 +218,9 @@ console.log("API RESPONSE:", response.data);
   // Handle event selection
   const handleEventSelected = (eventId: string) => {
     // Navigate to vendor profile with event context
-    navigate(`/customer/events/${eventId}/vendor-profile/${selectedVendor?.id}`);
+    navigate(
+      `/customer/events/${eventId}/vendor-profile/${selectedVendor?.id}`,
+    );
     setShowEventPicker(false);
     setSelectedVendor(null);
   };
@@ -226,15 +228,15 @@ console.log("API RESPONSE:", response.data);
   // Get service icon
   const getServiceIcon = (category: string) => {
     switch (category.toLowerCase()) {
-      case 'photography':
+      case "photography":
         return Camera;
-      case 'videography':
+      case "videography":
         return Video;
-      case 'catering':
+      case "catering":
         return Utensils;
-      case 'music':
+      case "music":
         return Music;
-      case 'decoration':
+      case "decoration":
         return Sparkles;
       default:
         return ShoppingBag;
@@ -242,13 +244,17 @@ console.log("API RESPONSE:", response.data);
   };
 
   // Active filters count
-  const activeFiltersCount = [categoryFilter, priceFilter, ratingFilter].filter(f => f !== 'all').length;
+  const activeFiltersCount = [categoryFilter, priceFilter, ratingFilter].filter(
+    (f) => f !== "all",
+  ).length;
 
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h1 className="text-3xl font-bold text-[#16232A] mb-2">Browse Vendors</h1>
+        <h1 className="text-3xl font-bold text-[#16232A] mb-2">
+          Browse Vendors
+        </h1>
         <p className="text-[#16232A]/70">
           Discover and connect with top-rated vendors for your events
         </p>
@@ -275,9 +281,9 @@ console.log("API RESPONSE:", response.data);
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
           >
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <option key={cat} value={cat}>
-                {cat === 'all' ? 'All Categories' : cat}
+                {cat === "all" ? "All Categories" : cat}
               </option>
             ))}
           </select>
@@ -308,9 +314,9 @@ console.log("API RESPONSE:", response.data);
           {activeFiltersCount > 0 && (
             <button
               onClick={() => {
-                setCategoryFilter('all');
-                setPriceFilter('all');
-                setRatingFilter('all');
+                setCategoryFilter("all");
+                setPriceFilter("all");
+                setRatingFilter("all");
               }}
               className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-[#16232A] hover:bg-gray-50 transition-colors font-medium"
             >
@@ -323,15 +329,19 @@ console.log("API RESPONSE:", response.data);
         {/* Results Count */}
         <div className="flex items-center justify-between text-sm">
           <p className="text-[#16232A]/70">
-            Showing <span className="font-semibold text-[#16232A]">{filteredVendors.length}</span> vendor{filteredVendors.length !== 1 ? 's' : ''}
+            Showing{" "}
+            <span className="font-semibold text-[#16232A]">
+              {filteredVendors.length}
+            </span>{" "}
+            vendor{filteredVendors.length !== 1 ? "s" : ""}
           </p>
           {(searchQuery || activeFiltersCount > 0) && (
             <button
               onClick={() => {
-                setSearchQuery('');
-                setCategoryFilter('all');
-                setPriceFilter('all');
-                setRatingFilter('all');
+                setSearchQuery("");
+                setCategoryFilter("all");
+                setPriceFilter("all");
+                setRatingFilter("all");
               }}
               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-[#16232A] hover:bg-gray-50 transition-colors font-medium"
             >
@@ -343,14 +353,14 @@ console.log("API RESPONSE:", response.data);
 
       {/* Vendors Grid */}
       {loading ? (
-  <div className="text-center py-12">
-    <p className="text-[#16232A]/60">Loading vendors...</p>
-  </div>
-) : filteredVendors.length > 0 ? (
+        <div className="text-center py-12">
+          <p className="text-[#16232A]/60">Loading vendors...</p>
+        </div>
+      ) : filteredVendors.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVendors.map((vendor, index) => {
             const ServiceIcon = getServiceIcon(vendor.category);
-            
+
             return (
               <motion.div
                 key={vendor.id}
@@ -373,19 +383,29 @@ console.log("API RESPONSE:", response.data);
                     )}
                   </div>
 
-                  <h3 className="font-bold text-[#16232A] text-lg mb-1">{vendor.name}</h3>
-                  <p className="text-sm text-[#16232A]/70 mb-3">{vendor.service}</p>
+                  <h3 className="font-bold text-[#16232A] text-lg mb-1">
+                    {vendor.name}
+                  </h3>
+                  <p className="text-sm text-[#16232A]/70 mb-3">
+                    {vendor.service}
+                  </p>
 
                   {/* Stats */}
                   <div className="flex items-center gap-4 mb-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-                      <span className="font-semibold text-[#16232A]">{vendor.rating}</span>
-                      <span className="text-[#16232A]/60">({vendor.reviewCount})</span>
+                      <span className="font-semibold text-[#16232A]">
+                        {vendor.rating}
+                      </span>
+                      <span className="text-[#16232A]/60">
+                        ({vendor.reviewCount})
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4 text-green-600" />
-                      <span className="font-medium text-[#16232A]">{vendor.priceRange}</span>
+                      <span className="font-medium text-[#16232A]">
+                        {vendor.priceRange}
+                      </span>
                     </div>
                   </div>
 
@@ -399,11 +419,15 @@ console.log("API RESPONSE:", response.data);
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="bg-gray-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-[#16232A]/60">Portfolio</p>
-                      <p className="font-bold text-[#16232A]">{vendor.portfolio}+</p>
+                      <p className="font-bold text-[#16232A]">
+                        {vendor.portfolio}+
+                      </p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-[#16232A]/60">Experience</p>
-                      <p className="font-bold text-[#16232A]">{vendor.experienceYears} yrs</p>
+                      <p className="font-bold text-[#16232A]">
+                        {vendor.experienceYears} yrs
+                      </p>
                     </div>
                   </div>
 
@@ -432,20 +456,22 @@ console.log("API RESPONSE:", response.data);
       ) : (
         <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
           <ShoppingBag className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-[#16232A] mb-2">No vendors found</h3>
+          <h3 className="text-xl font-semibold text-[#16232A] mb-2">
+            No vendors found
+          </h3>
           <p className="text-[#16232A]/60 mb-6">
             {searchQuery || activeFiltersCount > 0
-              ? 'Try adjusting your search or filters'
-              : 'No vendors available at the moment'}
+              ? "Try adjusting your search or filters"
+              : "No vendors available at the moment"}
           </p>
           {(searchQuery || activeFiltersCount > 0) && (
             <Button
               variant="outline"
               onClick={() => {
-                setSearchQuery('');
-                setCategoryFilter('all');
-                setPriceFilter('all');
-                setRatingFilter('all');
+                setSearchQuery("");
+                setCategoryFilter("all");
+                setPriceFilter("all");
+                setRatingFilter("all");
               }}
             >
               Clear Filters

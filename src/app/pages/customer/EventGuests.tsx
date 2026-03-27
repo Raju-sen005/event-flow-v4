@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { motion, AnimatePresence } from 'motion/react';
-import { Button } from '@/app/components/ui/button';
+import axios from "axios";
+import { useEffect, useState } from "react";
+
+import { useParams, useNavigate } from "react-router";
+import { motion, AnimatePresence } from "motion/react";
+import { Button } from "@/app/components/ui/button";
 import {
   ArrowLeft,
   Plus,
@@ -23,14 +25,14 @@ import {
   MessageSquare,
   AlertCircle,
   X,
-  Check
-} from 'lucide-react';
+  Check,
+} from "lucide-react";
 
-type GuestStatus = 'not-invited' | 'sent' | 'accepted' | 'declined' | 'maybe';
-type GuestCategory = 'family' | 'friend' | 'colleague' | 'other';
+type GuestStatus = "not-invited" | "sent" | "accepted" | "declined" | "maybe";
+type GuestCategory = "family" | "friend" | "colleague" | "other";
 
 type Guest = {
-  id: string;
+  id: number;
   name: string;
   phone: string;
   email?: string;
@@ -42,127 +44,107 @@ type Guest = {
 };
 
 export const EventGuests: React.FC = () => {
-  const { eventId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
+  const params = useParams();
+  console.log("params:", params);
 
   const [showAddGuestModal, setShowAddGuestModal] = useState(false);
   const [showUploadCSVModal, setShowUploadCSVModal] = useState(false);
-  const [showSendInvitationsModal, setShowSendInvitationsModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<GuestStatus | 'all'>('all');
-  const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
+  const [showSendInvitationsModal, setShowSendInvitationsModal] =
+    useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<GuestStatus | "all">("all");
+  const [selectedGuests, setSelectedGuests] = useState<number[]>([]);
 
   // Mock event data
-  const event = {
-    id: eventId || '1',
-    name: 'Sarah & John Wedding',
-    date: '2026-06-15'
-  };
+  // const event = {
+  //   id: eventId || "1",
+  //   name: "Sarah & John Wedding",
+  //   date: "2026-06-15",
+  // };
 
   // Mock guests data
-  const guests: Guest[] = [
-    {
-      id: '1',
-      name: 'Emily Johnson',
-      phone: '+1 234 567 8901',
-      email: 'emily@example.com',
-      category: 'friend',
-      status: 'accepted',
-      qrGenerated: true,
-      checkedIn: false,
-      addedAt: '2026-01-15T10:00:00'
-    },
-    {
-      id: '2',
-      name: 'Michael Smith',
-      phone: '+1 234 567 8902',
-      email: 'michael@example.com',
-      category: 'family',
-      status: 'maybe',
-      qrGenerated: true,
-      checkedIn: false,
-      addedAt: '2026-01-15T10:05:00'
-    },
-    {
-      id: '3',
-      name: 'Sarah Williams',
-      phone: '+1 234 567 8903',
-      email: 'sarah@example.com',
-      category: 'friend',
-      status: 'sent',
-      qrGenerated: true,
-      checkedIn: false,
-      addedAt: '2026-01-15T10:10:00'
-    },
-    {
-      id: '4',
-      name: 'David Brown',
-      phone: '+1 234 567 8904',
-      category: 'colleague',
-      status: 'declined',
-      qrGenerated: false,
-      checkedIn: false,
-      addedAt: '2026-01-15T10:15:00'
-    },
-    {
-      id: '5',
-      name: 'Jessica Davis',
-      phone: '+1 234 567 8905',
-      email: 'jessica@example.com',
-      category: 'family',
-      status: 'not-invited',
-      qrGenerated: false,
-      checkedIn: false,
-      addedAt: '2026-01-15T10:20:00'
+  const deleteGuest = async (id: number) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/guests/${id}`);
+      fetchGuests(); // refresh list
+    } catch (err) {
+      console.error("Delete failed", err);
     }
-  ];
+  };
+
+  const [guests, setGuests] = useState([]);
+
+  useEffect(() => {
+    fetchGuests();
+  }, [id]);
+
+  const fetchGuests = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/guests/event/${id}`,
+      );
+      setGuests(res.data.data);
+    } catch (err) {
+      console.error("Error fetching guests", err);
+    }
+  };
 
   // Filter guests
-  const filteredGuests = guests.filter(guest => {
-    const matchesSearch = guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         guest.phone.includes(searchQuery);
-    const matchesStatus = filterStatus === 'all' || guest.status === filterStatus;
+  const filteredGuests = guests.filter((guest: any) => {
+    const status = guest.status || "not-invited";
+
+    const matchesSearch =
+      guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      guest.phone.includes(searchQuery);
+
+    const matchesStatus = filterStatus === "all" || status === filterStatus;
+
     return matchesSearch && matchesStatus;
   });
 
   // Calculate guest statistics
   const stats = {
     total: guests.length,
-    accepted: guests.filter(g => g.status === 'accepted').length,
-    declined: guests.filter(g => g.status === 'declined').length,
-    pending: guests.filter(g => g.status === 'sent' || g.status === 'maybe').length,
-    notInvited: guests.filter(g => g.status === 'not-invited').length,
-    checkedIn: guests.filter(g => g.checkedIn).length
+    accepted: guests.filter((g: any) => g.status === "accepted").length || 0,
+    declined: guests.filter((g: any) => g.status === "declined").length || 0,
+    pending: guests.filter(
+      (g: any) => g.status === "sent" || g.status === "maybe",
+    ).length,
+    notInvited:
+      guests.filter((g: any) => g.status === "not-invited").length || 0,
+    checkedIn: guests.filter((g: any) => g.checkedIn).length || 0,
   };
 
   // Get status badge styling
   const getStatusBadge = (status: GuestStatus) => {
     switch (status) {
-      case 'accepted':
-        return 'bg-green-100 text-green-700';
-      case 'declined':
-        return 'bg-red-100 text-red-700';
-      case 'maybe':
-        return 'bg-amber-100 text-amber-700';
-      case 'sent':
-        return 'bg-blue-100 text-blue-700';
-      case 'not-invited':
-        return 'bg-gray-100 text-gray-700';
+      case "accepted":
+        return "bg-green-100 text-green-700";
+      case "declined":
+        return "bg-red-100 text-red-700";
+      case "maybe":
+        return "bg-amber-100 text-amber-700";
+      case "sent":
+        return "bg-blue-100 text-blue-700";
+      case "not-invited":
+        return "bg-gray-100 text-gray-700";
       default:
-        return 'bg-gray-100 text-gray-700';
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   // Get status icon
   const getStatusIcon = (status: GuestStatus) => {
     switch (status) {
-      case 'accepted':
+      case "accepted":
         return <CheckCircle2 className="h-4 w-4" />;
-      case 'declined':
+      case "declined":
         return <XCircle className="h-4 w-4" />;
-      case 'maybe':
+      case "maybe":
         return <HelpCircle className="h-4 w-4" />;
-      case 'sent':
+      case "sent":
         return <Clock className="h-4 w-4" />;
       default:
         return <Users className="h-4 w-4" />;
@@ -170,11 +152,11 @@ export const EventGuests: React.FC = () => {
   };
 
   // Toggle guest selection
-  const toggleGuestSelection = (guestId: string) => {
-    setSelectedGuests(prev =>
+  const toggleGuestSelection = (guestId: number) => {
+    setSelectedGuests((prev) =>
       prev.includes(guestId)
-        ? prev.filter(id => id !== guestId)
-        : [...prev, guestId]
+        ? prev.filter((id) => id !== guestId)
+        : [...prev, guestId],
     );
   };
 
@@ -183,7 +165,7 @@ export const EventGuests: React.FC = () => {
     if (selectedGuests.length === filteredGuests.length) {
       setSelectedGuests([]);
     } else {
-      setSelectedGuests(filteredGuests.map(g => g.id));
+      setSelectedGuests(filteredGuests.map((g) => g.id));
     }
   };
 
@@ -192,7 +174,7 @@ export const EventGuests: React.FC = () => {
       {/* Header */}
       <div>
         <button
-          onClick={() => navigate(`/customer/events/${eventId}`)}
+          onClick={() => navigate(`/customer/events/${id}`)}
           className="flex items-center gap-2 text-[#16232A]/70 hover:text-[#16232A] mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -200,7 +182,9 @@ export const EventGuests: React.FC = () => {
         </button>
 
         <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h1 className="text-3xl font-bold text-[#16232A] mb-2">Guests for This Event</h1>
+          <h1 className="text-3xl font-bold text-[#16232A] mb-2">
+            Guests for This Event
+          </h1>
           <p className="text-[#16232A]/70">
             Manage guests and track their responses for {event.name}.
           </p>
@@ -288,7 +272,9 @@ export const EventGuests: React.FC = () => {
           {/* Status Filter */}
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as GuestStatus | 'all')}
+            onChange={(e) =>
+              setFilterStatus(e.target.value as GuestStatus | "all")
+            }
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
           >
             <option value="all">All Statuses</option>
@@ -333,7 +319,9 @@ export const EventGuests: React.FC = () => {
                   />
                 </div>
                 <div className="col-span-3">
-                  <p className="text-sm font-medium text-[#16232A]">Guest Name</p>
+                  <p className="text-sm font-medium text-[#16232A]">
+                    Guest Name
+                  </p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-sm font-medium text-[#16232A]">Contact</p>
@@ -400,13 +388,19 @@ export const EventGuests: React.FC = () => {
                     {/* Status */}
                     <div className="col-span-2">
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(guest.status)}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(guest.status || "not-invited")}`}
+                        >
                           {getStatusIcon(guest.status)}
-                          <span className="capitalize">{guest.status.replace('-', ' ')}</span>
+                          <span className="capitalize">
+                            {(guest.status || "not-invited").replace("-", " ")}
+                          </span>
                         </span>
                       </div>
                       {guest.checkedIn && (
-                        <p className="text-xs text-green-600 mt-1">✓ Checked In</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          ✓ Checked In
+                        </p>
                       )}
                     </div>
 
@@ -415,10 +409,14 @@ export const EventGuests: React.FC = () => {
                       {guest.qrGenerated ? (
                         <div className="flex items-center gap-2">
                           <QrCode className="h-4 w-4 text-green-600" />
-                          <span className="text-xs text-green-600 font-medium">Generated</span>
+                          <span className="text-xs text-green-600 font-medium">
+                            Generated
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500">Not Generated</span>
+                        <span className="text-xs text-gray-500">
+                          Not Generated
+                        </span>
                       )}
                     </div>
 
@@ -431,7 +429,12 @@ export const EventGuests: React.FC = () => {
                         <Button variant="ghost" size="sm">
                           <MessageSquare className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => deleteGuest(guest.id)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -444,13 +447,15 @@ export const EventGuests: React.FC = () => {
         ) : (
           <div className="p-12 text-center">
             <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-[#16232A] mb-2">No guests found</h3>
+            <h3 className="text-xl font-semibold text-[#16232A] mb-2">
+              No guests found
+            </h3>
             <p className="text-[#16232A]/60 mb-6">
-              {searchQuery || filterStatus !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'Start by adding guests to your event'}
+              {searchQuery || filterStatus !== "all"
+                ? "Try adjusting your search or filters"
+                : "Start by adding guests to your event"}
             </p>
-            {(!searchQuery && filterStatus === 'all') && (
+            {!searchQuery && filterStatus === "all" && (
               <Button
                 onClick={() => setShowAddGuestModal(true)}
                 className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
@@ -467,21 +472,22 @@ export const EventGuests: React.FC = () => {
       <AddGuestModal
         isOpen={showAddGuestModal}
         onClose={() => setShowAddGuestModal(false)}
-        eventId={eventId || ''}
+        eventId={id || ""}
+        onGuestAdded={fetchGuests}
       />
 
       {/* Upload CSV Modal */}
       <UploadCSVModal
         isOpen={showUploadCSVModal}
         onClose={() => setShowUploadCSVModal(false)}
-        eventId={eventId || ''}
+        eventId={id || ""}
       />
 
       {/* Send Invitations Modal */}
       <SendInvitationsModal
         isOpen={showSendInvitationsModal}
         onClose={() => setShowSendInvitationsModal(false)}
-        eventId={eventId || ''}
+        eventId={id || ""}
         guests={guests}
         selectedGuestIds={selectedGuests}
       />
@@ -493,20 +499,38 @@ export const EventGuests: React.FC = () => {
 const AddGuestModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
+  onGuestAdded: () => void;
   eventId: string;
-}> = ({ isOpen, onClose, eventId }) => {
+}> = ({ isOpen, onClose, eventId, onGuestAdded }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    category: ''
+    name: "",
+    phone: "",
+    email: "",
+    category: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In production, save to backend
-    console.log('Adding guest:', formData);
-    onClose();
+
+    try {
+      console.log("eventId:", eventId);
+      console.log("parsed:", parseInt(eventId));
+
+      await axios.post("http://localhost:5000/api/guests", {
+        event_id: Number(eventId),
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        category: formData.category || "other",
+      });
+
+      alert("Guest added successfully");
+      onGuestAdded(); // 🔥 refresh list
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add guest");
+    }
   };
 
   if (!isOpen) return null;
@@ -536,7 +560,9 @@ const AddGuestModal: React.FC<{
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               required
               placeholder="Enter guest name"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
@@ -550,7 +576,9 @@ const AddGuestModal: React.FC<{
             <input
               type="tel"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
               required
               placeholder="+1 234 567 8900"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
@@ -564,7 +592,9 @@ const AddGuestModal: React.FC<{
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               placeholder="guest@example.com"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
             />
@@ -576,7 +606,9 @@ const AddGuestModal: React.FC<{
             </label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
             >
               <option value="">Select category</option>
@@ -616,7 +648,7 @@ const UploadCSVModal: React.FC<{
   onClose: () => void;
   eventId: string;
 }> = ({ isOpen, onClose, eventId }) => {
-  const [step, setStep] = useState<'preview' | 'upload'>('preview');
+  const [step, setStep] = useState<"preview" | "upload">("preview");
 
   if (!isOpen) return null;
 
@@ -628,7 +660,9 @@ const UploadCSVModal: React.FC<{
         className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-[#16232A]">Upload Guests via CSV</h3>
+          <h3 className="text-2xl font-bold text-[#16232A]">
+            Upload Guests via CSV
+          </h3>
           <button
             onClick={onClose}
             className="text-[#16232A]/50 hover:text-[#16232A]"
@@ -637,7 +671,7 @@ const UploadCSVModal: React.FC<{
           </button>
         </div>
 
-        {step === 'preview' && (
+        {step === "preview" && (
           <div className="space-y-6">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <h4 className="font-semibold text-blue-900 mb-2">CSV Format</h4>
@@ -655,7 +689,7 @@ const UploadCSVModal: React.FC<{
               <h4 className="font-semibold text-[#16232A] mb-3">Sample Data</h4>
               <div className="bg-white rounded-lg p-3 border border-gray-200">
                 <pre className="text-xs text-[#16232A]/70">
-{`John Doe, +1234567890, john@example.com, family
+                  {`John Doe, +1234567890, john@example.com, family
 Jane Smith, +1234567891, jane@example.com, friend
 Bob Johnson, +1234567892, , colleague`}
                 </pre>
@@ -663,15 +697,12 @@ Bob Johnson, +1234567892, , colleague`}
             </div>
 
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-              >
+              <Button variant="outline" className="flex-1">
                 <Download className="h-4 w-4 mr-2" />
                 Download Template
               </Button>
               <Button
-                onClick={() => setStep('upload')}
+                onClick={() => setStep("upload")}
                 className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
               >
                 Continue to Upload
@@ -680,28 +711,28 @@ Bob Johnson, +1234567892, , colleague`}
           </div>
         )}
 
-        {step === 'upload' && (
+        {step === "upload" && (
           <div className="space-y-6">
             <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
               <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-[#16232A] font-medium mb-2">Drop your CSV file here</p>
-              <p className="text-sm text-[#16232A]/60 mb-4">or click to browse</p>
-              <Button variant="outline">
-                Choose File
-              </Button>
+              <p className="text-[#16232A] font-medium mb-2">
+                Drop your CSV file here
+              </p>
+              <p className="text-sm text-[#16232A]/60 mb-4">
+                or click to browse
+              </p>
+              <Button variant="outline">Choose File</Button>
             </div>
 
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setStep('preview')}
+                onClick={() => setStep("preview")}
                 className="flex-1"
               >
                 Back
               </Button>
-              <Button
-                className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
-              >
+              <Button className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
                 <Check className="h-4 w-4 mr-2" />
                 Import Guests
               </Button>
@@ -719,16 +750,19 @@ const SendInvitationsModal: React.FC<{
   onClose: () => void;
   eventId: string;
   guests: Guest[];
-  selectedGuestIds: string[];
+  selectedGuestIds: number[];
 }> = ({ isOpen, onClose, eventId, guests, selectedGuestIds }) => {
-  const [step, setStep] = useState<'select-guests' | 'choose-channel' | 'message' | 'confirm'>(
-    'select-guests'
-  );
-  const [sendTo, setSendTo] = useState<'all' | 'selected'>('all');
-  const [channel, setChannel] = useState<'whatsapp' | 'email'>('whatsapp');
-  const [message, setMessage] = useState('');
+  const [step, setStep] = useState<
+    "select-guests" | "choose-channel" | "message" | "confirm"
+  >("select-guests");
+  const [sendTo, setSendTo] = useState<"all" | "selected">("all");
+  const [channel, setChannel] = useState<"whatsapp" | "email">("whatsapp");
+  const [message, setMessage] = useState("");
 
-  const guestsToInvite = sendTo === 'all' ? guests : guests.filter(g => selectedGuestIds.includes(g.id));
+  const guestsToInvite =
+    sendTo === "all"
+      ? guests
+      : guests.filter((g) => selectedGuestIds.includes(g.id));
 
   if (!isOpen) return null;
 
@@ -740,7 +774,9 @@ const SendInvitationsModal: React.FC<{
         className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-[#16232A]">Send Invitations</h3>
+          <h3 className="text-2xl font-bold text-[#16232A]">
+            Send Invitations
+          </h3>
           <button
             onClick={onClose}
             className="text-[#16232A]/50 hover:text-[#16232A]"
@@ -751,69 +787,97 @@ const SendInvitationsModal: React.FC<{
 
         {/* Step Indicator */}
         <div className="flex items-center justify-between mb-8">
-          {['Select Guests', 'Choose Channel', 'Message', 'Confirm'].map((label, index) => (
-            <div key={label} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  index + 1 <= ['select-guests', 'choose-channel', 'message', 'confirm'].indexOf(step) + 1
-                    ? 'bg-[#FF5B04] text-white'
-                    : 'bg-gray-200 text-gray-500'
-                }`}
-              >
-                {index + 1}
+          {["Select Guests", "Choose Channel", "Message", "Confirm"].map(
+            (label, index) => (
+              <div key={label} className="flex items-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    index + 1 <=
+                    [
+                      "select-guests",
+                      "choose-channel",
+                      "message",
+                      "confirm",
+                    ].indexOf(step) +
+                      1
+                      ? "bg-[#FF5B04] text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {index + 1}
+                </div>
+                {index < 3 && (
+                  <div
+                    className={`w-16 h-1 ${
+                      index + 1 <
+                      [
+                        "select-guests",
+                        "choose-channel",
+                        "message",
+                        "confirm",
+                      ].indexOf(step) +
+                        1
+                        ? "bg-[#FF5B04]"
+                        : "bg-gray-200"
+                    }`}
+                  />
+                )}
               </div>
-              {index < 3 && (
-                <div className={`w-16 h-1 ${
-                  index + 1 < ['select-guests', 'choose-channel', 'message', 'confirm'].indexOf(step) + 1
-                    ? 'bg-[#FF5B04]'
-                    : 'bg-gray-200'
-                }`} />
-              )}
-            </div>
-          ))}
+            ),
+          )}
         </div>
 
-        {step === 'select-guests' && (
+        {step === "select-guests" && (
           <div className="space-y-6">
             <div className="space-y-3">
               <button
-                onClick={() => setSendTo('all')}
+                onClick={() => setSendTo("all")}
                 className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                  sendTo === 'all'
-                    ? 'border-[#FF5B04] bg-[#FF5B04]/5'
-                    : 'border-gray-200 hover:border-[#FF5B04]/30'
+                  sendTo === "all"
+                    ? "border-[#FF5B04] bg-[#FF5B04]/5"
+                    : "border-gray-200 hover:border-[#FF5B04]/30"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-[#16232A]">All Guests</p>
-                    <p className="text-sm text-[#16232A]/60">{guests.length} guests</p>
+                    <p className="text-sm text-[#16232A]/60">
+                      {guests.length} guests
+                    </p>
                   </div>
-                  {sendTo === 'all' && <Check className="h-5 w-5 text-[#FF5B04]" />}
+                  {sendTo === "all" && (
+                    <Check className="h-5 w-5 text-[#FF5B04]" />
+                  )}
                 </div>
               </button>
 
               <button
-                onClick={() => setSendTo('selected')}
+                onClick={() => setSendTo("selected")}
                 disabled={selectedGuestIds.length === 0}
                 className={`w-full p-4 rounded-xl border-2 text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                  sendTo === 'selected'
-                    ? 'border-[#FF5B04] bg-[#FF5B04]/5'
-                    : 'border-gray-200 hover:border-[#FF5B04]/30'
+                  sendTo === "selected"
+                    ? "border-[#FF5B04] bg-[#FF5B04]/5"
+                    : "border-gray-200 hover:border-[#FF5B04]/30"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-[#16232A]">Selected Guests Only</p>
-                    <p className="text-sm text-[#16232A]/60">{selectedGuestIds.length} selected</p>
+                    <p className="font-semibold text-[#16232A]">
+                      Selected Guests Only
+                    </p>
+                    <p className="text-sm text-[#16232A]/60">
+                      {selectedGuestIds.length} selected
+                    </p>
                   </div>
-                  {sendTo === 'selected' && <Check className="h-5 w-5 text-[#FF5B04]" />}
+                  {sendTo === "selected" && (
+                    <Check className="h-5 w-5 text-[#FF5B04]" />
+                  )}
                 </div>
               </button>
             </div>
 
             <Button
-              onClick={() => setStep('choose-channel')}
+              onClick={() => setStep("choose-channel")}
               className="w-full bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
             >
               Continue
@@ -821,15 +885,15 @@ const SendInvitationsModal: React.FC<{
           </div>
         )}
 
-        {step === 'choose-channel' && (
+        {step === "choose-channel" && (
           <div className="space-y-6">
             <div className="space-y-3">
               <button
-                onClick={() => setChannel('whatsapp')}
+                onClick={() => setChannel("whatsapp")}
                 className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                  channel === 'whatsapp'
-                    ? 'border-[#FF5B04] bg-[#FF5B04]/5'
-                    : 'border-gray-200 hover:border-[#FF5B04]/30'
+                  channel === "whatsapp"
+                    ? "border-[#FF5B04] bg-[#FF5B04]/5"
+                    : "border-gray-200 hover:border-[#FF5B04]/30"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -837,19 +901,23 @@ const SendInvitationsModal: React.FC<{
                     <MessageSquare className="h-6 w-6 text-green-600" />
                     <div>
                       <p className="font-semibold text-[#16232A]">WhatsApp</p>
-                      <p className="text-sm text-[#16232A]/60">Send via WhatsApp message</p>
+                      <p className="text-sm text-[#16232A]/60">
+                        Send via WhatsApp message
+                      </p>
                     </div>
                   </div>
-                  {channel === 'whatsapp' && <Check className="h-5 w-5 text-[#FF5B04]" />}
+                  {channel === "whatsapp" && (
+                    <Check className="h-5 w-5 text-[#FF5B04]" />
+                  )}
                 </div>
               </button>
 
               <button
-                onClick={() => setChannel('email')}
+                onClick={() => setChannel("email")}
                 className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                  channel === 'email'
-                    ? 'border-[#FF5B04] bg-[#FF5B04]/5'
-                    : 'border-gray-200 hover:border-[#FF5B04]/30'
+                  channel === "email"
+                    ? "border-[#FF5B04] bg-[#FF5B04]/5"
+                    : "border-gray-200 hover:border-[#FF5B04]/30"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -857,10 +925,14 @@ const SendInvitationsModal: React.FC<{
                     <Mail className="h-6 w-6 text-blue-600" />
                     <div>
                       <p className="font-semibold text-[#16232A]">Email</p>
-                      <p className="text-sm text-[#16232A]/60">Send via email</p>
+                      <p className="text-sm text-[#16232A]/60">
+                        Send via email
+                      </p>
                     </div>
                   </div>
-                  {channel === 'email' && <Check className="h-5 w-5 text-[#FF5B04]" />}
+                  {channel === "email" && (
+                    <Check className="h-5 w-5 text-[#FF5B04]" />
+                  )}
                 </div>
               </button>
             </div>
@@ -868,13 +940,13 @@ const SendInvitationsModal: React.FC<{
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setStep('select-guests')}
+                onClick={() => setStep("select-guests")}
                 className="flex-1"
               >
                 Back
               </Button>
               <Button
-                onClick={() => setStep('message')}
+                onClick={() => setStep("message")}
                 className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
               >
                 Continue
@@ -883,7 +955,7 @@ const SendInvitationsModal: React.FC<{
           </div>
         )}
 
-        {step === 'message' && (
+        {step === "message" && (
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-[#16232A] mb-2">
@@ -897,7 +969,7 @@ const SendInvitationsModal: React.FC<{
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] resize-none"
               />
               <p className="text-xs text-[#16232A]/50 mt-2">
-                Variables: {'{guest_name}'}, {'{event_name}'}, {'{event_date}'}
+                Variables: {"{guest_name}"}, {"{event_name}"}, {"{event_date}"}
               </p>
             </div>
 
@@ -905,7 +977,7 @@ const SendInvitationsModal: React.FC<{
               <p className="text-sm font-medium text-[#16232A] mb-2">Preview</p>
               <div className="bg-white rounded-lg p-3 border border-gray-200">
                 <p className="text-sm text-[#16232A]/70 whitespace-pre-wrap">
-                  {message || 'Your message will appear here...'}
+                  {message || "Your message will appear here..."}
                 </p>
               </div>
             </div>
@@ -913,13 +985,13 @@ const SendInvitationsModal: React.FC<{
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setStep('choose-channel')}
+                onClick={() => setStep("choose-channel")}
                 className="flex-1"
               >
                 Back
               </Button>
               <Button
-                onClick={() => setStep('confirm')}
+                onClick={() => setStep("confirm")}
                 className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
               >
                 Continue
@@ -928,10 +1000,12 @@ const SendInvitationsModal: React.FC<{
           </div>
         )}
 
-        {step === 'confirm' && (
+        {step === "confirm" && (
           <div className="space-y-6">
             <div className="bg-[#E4EEF0] rounded-xl p-6">
-              <h4 className="font-semibold text-[#16232A] mb-4">Invitation Summary</h4>
+              <h4 className="font-semibold text-[#16232A] mb-4">
+                Invitation Summary
+              </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[#16232A]/60">Recipients:</span>
@@ -941,7 +1015,9 @@ const SendInvitationsModal: React.FC<{
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#16232A]/60">Channel:</span>
-                  <span className="font-medium text-[#16232A] capitalize">{channel}</span>
+                  <span className="font-medium text-[#16232A] capitalize">
+                    {channel}
+                  </span>
                 </div>
               </div>
             </div>
@@ -949,15 +1025,15 @@ const SendInvitationsModal: React.FC<{
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-amber-900">
-                Invitations will be sent to {guestsToInvite.length} selected guests via {channel}.
-                This action cannot be undone.
+                Invitations will be sent to {guestsToInvite.length} selected
+                guests via {channel}. This action cannot be undone.
               </p>
             </div>
 
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setStep('message')}
+                onClick={() => setStep("message")}
                 className="flex-1"
               >
                 Back
@@ -965,7 +1041,7 @@ const SendInvitationsModal: React.FC<{
               <Button
                 onClick={() => {
                   // Send invitations
-                  console.log('Sending invitations');
+                  console.log("Sending invitations");
                   onClose();
                 }}
                 className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"

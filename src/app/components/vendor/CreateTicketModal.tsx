@@ -298,7 +298,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
               className="space-y-6"
             >
               {/* Related Reference */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold text-[#16232A] mb-2">
                   Related Reference (Optional)
                 </label>
@@ -336,7 +336,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#075056]"
                   />
                 )}
-              </div>
+              </div> */}
 
               {/* Attachments */}
               <div>

@@ -82,13 +82,13 @@ export const EventOverviewEnhanced: React.FC = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("all");
   const [categories, setCategories] = useState<any[]>([]);
   const fetchCategories = async () => {
-  try {
-    const res = await api.get("/admin/category-list");
-    setCategories(res.data.data || []);
-  } catch (err) {
-    console.error("Category fetch failed", err);
-  }
-};
+    try {
+      const res = await api.get("/admin/category-list");
+      setCategories(res.data.data || []);
+    } catch (err) {
+      console.error("Category fetch failed", err);
+    }
+  };
 
   const [event, setEvent] = useState<any>(null);
   const [vendors, setVendors] = useState<any[]>([]);
@@ -256,7 +256,8 @@ export const EventOverviewEnhanced: React.FC = () => {
   // Filter functions
   const filteredVendors = vendors.filter((v) => {
     const serviceMatch =
-      vendorServiceFilter === "all" || v.service === vendorServiceFilter;
+      vendorServiceFilter === "all" ||
+      v.service?.service_name === vendorServiceFilter;
     const statusMatch =
       vendorStatusFilter === "all" || v.status === vendorStatusFilter;
     return serviceMatch && statusMatch;
@@ -308,16 +309,13 @@ export const EventOverviewEnhanced: React.FC = () => {
   };
 
   const formatTime = (time?: string) => {
-  if (!time) return "";
-  return time.slice(0, 5); // HH:mm
-};
+    if (!time) return "";
+    return time.slice(0, 5); // HH:mm
+  };
 
-
-
-useEffect(() => {
-  fetchCategories();
-}, []);
-
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -329,11 +327,23 @@ useEffect(() => {
     try {
       const res = await api.get(`/events/${id}`);
 
-      setEvent(res.data.data); // ⭐ यही main fix है
-      setVendors(res.data.data.vendors || []);
-      setBids(res.data.data.bids || []);
-      setGuests(res.data.data.guests || []);
-      setPayments(res.data.data.payments || []);
+      const data = res.data.data;
+
+      setEvent(data);
+
+      // ✅ FIX HERE
+      const formattedBids = (data.bids || []).map((b: any) => ({
+        id: b.id,
+        vendorName: b.vendor?.name,
+        service: b.package_name,
+        amount: b.price, // 🔥 important
+        status: b.status,
+      }));
+
+      setBids(formattedBids);
+      setVendors(data.vendors || []);
+      setGuests(data.guests || []);
+      setPayments(data.payments || []);
     } catch (error) {
       console.error("Event detail fetch failed", error);
     } finally {
@@ -348,9 +358,10 @@ useEffect(() => {
   if (!event) {
     return <div className="p-6">Event not found</div>;
   }
-  
+
   const categoryName =
-  categories.find(cat => cat.id === event.category_id)?.name || "No category";
+    categories.find((cat) => cat.id === event.category_id)?.name ||
+    "No category";
 
   return (
     <div className="space-y-6 pb-8">
@@ -405,7 +416,7 @@ useEffect(() => {
           </div>
 
           <div className="flex gap-2">
-            <Tooltip
+            {/* <Tooltip
               text="Event details cannot be edited after execution starts"
               show={!canEditEvent}
             >
@@ -418,7 +429,7 @@ useEffect(() => {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Event
               </Button>
-            </Tooltip>
+            </Tooltip> */}
             <Button
               onClick={() => navigate(`/customer/events/${id}/timeline`)}
               variant="outline"
@@ -984,8 +995,8 @@ const VendorsTab: React.FC<{
         >
           <option value="all">All Services</option>
           {services.map((service) => (
-            <option key={service} value={service}>
-              {service}
+            <option key={service.id} value={service.service_name}>
+              {service.service_name}
             </option>
           ))}
         </select>
@@ -1028,7 +1039,7 @@ const VendorsTab: React.FC<{
                     {vendor.name}
                   </h4>
                   <p className="text-sm text-[#16232A]/60 mb-2">
-                    {vendor.service}
+                    {vendor.service?.service_name || "No Service"}
                   </p>
                   <span
                     className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(vendor.status)}`}
@@ -1186,8 +1197,8 @@ const BidsTab: React.FC<{
         >
           <option value="all">All Services</option>
           {services.map((service) => (
-            <option key={service} value={service}>
-              {service}
+            <option key={service.id} value={service.service_name}>
+              {service.service_name}
             </option>
           ))}
         </select>
@@ -1242,7 +1253,7 @@ const BidsTab: React.FC<{
                       {bid.status}
                     </span>
                     <span className="text-2xl font-bold text-[#FF5B04]">
-                      ${bid.amount.toLocaleString()}
+                      ${Number(bid.amount || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -1381,7 +1392,7 @@ const GuestsTab: React.FC<{
               <span
                 className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(guest.status)}`}
               >
-                {guest.status.replace("-", " ")}
+                {(guest.status || "not-invited").replace("-", " ")}
               </span>
             </div>
           ))}

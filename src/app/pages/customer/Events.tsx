@@ -100,14 +100,14 @@ export const Events: React.FC = () => {
     }
   };
 
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.type.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || event.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  // const filteredEvents = events.filter((event) => {
+  //   const matchesSearch =
+  //     event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     event.type.toLowerCase().includes(searchQuery.toLowerCase());
+  //   const matchesFilter =
+  //     filterStatus === "all" || event.status === filterStatus;
+  //   return matchesSearch && matchesFilter;
+  // });
 
   useEffect(() => {
     fetchCategories();
@@ -126,6 +126,41 @@ export const Events: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // AFTER fetchEvents()
+
+  const formattedEvents = events.map((data) => {
+    const bidCount = parseInt(data.bidCount || 0);
+
+    let progress = 0;
+
+    progress += 20;
+
+    if (data.services?.length > 0) progress += 20;
+    if (bidCount > 0) progress += 20;
+    if (bidCount >= 3) progress += 20;
+    if (data.vendorId) progress += 20;
+
+    if (data.status === "completed") progress = 100;
+
+    return {
+      ...data,
+      bidCount,
+      progress,
+    };
+  });
+
+  // 🔥 NOW filter on formatted data
+  const filteredEvents = formattedEvents.filter((event) => {
+    const matchesSearch = event.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    const matchesFilter =
+      filterStatus === "all" || event.status === filterStatus;
+
+    return matchesSearch && matchesFilter;
+  });
 
   if (loading) {
     return <div>Loading events...</div>;
@@ -248,7 +283,8 @@ export const Events: React.FC = () => {
                 <div className="text-center">
                   <Users className="h-4 w-4 mx-auto text-[#16232A]/60 mb-1" />
                   <p className="text-lg font-bold text-[#16232A]">
-                    {event.rsvpConfirmed}/{event.guests}
+                    {/* {event.rsvpConfirmed}/ */}
+                    {event.guest}
                   </p>
                   <p className="text-xs text-[#16232A]/60">Guests</p>
                 </div>
@@ -256,7 +292,7 @@ export const Events: React.FC = () => {
                 <div className="text-center">
                   <ShoppingBag className="h-4 w-4 mx-auto text-[#16232A]/60 mb-1" />
                   <p className="text-lg font-bold text-[#16232A]">
-                    {event.vendors}
+                    {event.bidCount || 0}
                   </p>
                   <p className="text-xs text-[#16232A]/60">Vendors</p>
                 </div>

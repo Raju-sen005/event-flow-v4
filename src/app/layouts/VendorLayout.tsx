@@ -37,8 +37,9 @@ const roleLabelMap: Record<string, string> = {
 
 export const VendorLayout: React.FC = () => {
   const { user, logout } = useAuth();
-  // const { user } = useAuth();
-  console.log(user);
+  if (user) {
+    console.log(user);
+  }
 
   const navigate = useNavigate();
   const location = useLocation();

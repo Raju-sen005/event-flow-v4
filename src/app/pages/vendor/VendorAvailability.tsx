@@ -234,7 +234,7 @@ ${
           {/* SETTINGS */}
 
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="font-semibold text-[#16232A] mb-4">Working Hours</h3>
+            <h3 className="font-semibold text-[#16232A] mb-4">Radius</h3>
 
             <div className="space-y-3">
               <div>
@@ -249,7 +249,7 @@ ${
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm text-[#16232A]/70 mb-2">
                   Default Hours
                 </label>
@@ -259,7 +259,7 @@ ${
                   onChange={(e) => setWorkingHours(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 
