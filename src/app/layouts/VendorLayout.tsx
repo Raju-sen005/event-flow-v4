@@ -114,7 +114,7 @@ export const VendorLayout: React.FC = () => {
                 <Briefcase className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-[#16232A]">
-                EventFlow
+                GoGatherHub
               </span>
               <span className="hidden sm:inline text-sm text-[#075056] font-medium">
                 {user ? roleLabelMap[user.role] : ""}
@@ -145,7 +145,7 @@ export const VendorLayout: React.FC = () => {
                   <img
                     src={
                       user?.profileImage
-                        ? `http://localhost:5000${user.profileImage}`
+                        ? `https://gogatherhub.com:5000${user.profileImage}`
                         : `https://ui-avatars.com/api/?name=${user?.name}&background=075056&color=fff`
                     }
                     className="w-full h-full object-cover"

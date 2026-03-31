@@ -62,7 +62,7 @@ interface PackageItem {
 }
 
 export const VendorProfile: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/vendor/profile";
+  const API_URL = "https://gogatherhub.com:5000/api/vendor/profile";
   const [activeTab, setActiveTab] = useState<"profile" | "kyc">("profile");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -113,7 +113,7 @@ export const VendorProfile: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          "https://gogatherhub.com:5000/api/admin/category-list",
         );
 
         setCategories(res.data.data);
@@ -348,7 +348,7 @@ export const VendorProfile: React.FC = () => {
                     </div>
                     {vendorProfile.profileImage && (
                       <img
-                        src={`http://localhost:5000${vendorProfile.profileImage}`}
+                        src={`https://gogatherhub.com:5000${vendorProfile.profileImage}`}
                         className="w-24 h-24 rounded-full object-cover"
                       />
                     )}
@@ -465,7 +465,7 @@ export const VendorProfile: React.FC = () => {
                               profileImage
                                 ? URL.createObjectURL(profileImage)
                                 : editedProfile.profileImage
-                                  ? `http://localhost:5000${editedProfile.profileImage}`
+                                  ? `https://gogatherhub.com:5000${editedProfile.profileImage}`
                                   : "https://ui-avatars.com/api/?name=User&background=075056&color=fff"
                             }
                             className="w-full h-full object-cover"

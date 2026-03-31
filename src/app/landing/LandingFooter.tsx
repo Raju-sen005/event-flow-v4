@@ -42,7 +42,7 @@ const footerLinks = {
     { label: "Community Forum", to: "/customer/support" },
   ],
   Company: [
-    { label: "About EventFlow", to: "/" },
+    { label: "About GoGatherHub", to: "/" },
     { label: "Blog", to: "/" },
     { label: "Careers", to: "/" },
     { label: "Press", to: "/" },
@@ -190,7 +190,7 @@ export const LandingFooter: React.FC = () => {
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-white/30 text-sm">
-              © 2026 EventFlow Technologies Pvt. Ltd. All rights reserved.
+              © 2026 GoGatherHub Technologies Pvt. Ltd. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm">
               <Link

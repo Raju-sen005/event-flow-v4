@@ -59,7 +59,7 @@ export const LoginEntry: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Welcome to EventFlow"
+      title="Welcome to GoGatherHub"
       subtitle="Select how you want to access the platform"
     >
       <div className="mb-6">

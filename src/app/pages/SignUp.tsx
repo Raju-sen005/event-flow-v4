@@ -85,7 +85,7 @@ export const SignUp: React.FC = () => {
   return (
     <AuthLayout
       title="Create Your Account"
-      subtitle="Join EventFlow and start planning amazing events"
+      subtitle="Join GoGatherHub and start planning amazing events"
       icon={<UserPlus className="h-6 w-6 text-gray-600" />}
     >
       <div className="mb-6">

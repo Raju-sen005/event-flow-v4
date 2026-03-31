@@ -46,7 +46,7 @@ export const VendorProfile: React.FC = () => {
   useEffect(() => {
     const fetchVendor = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/vendors/${id}`);
+        const res = await axios.get(`https://gogatherhub.com:5000/api/vendors/${id}`);
 
         const v = res.data.data;
 
@@ -59,7 +59,7 @@ export const VendorProfile: React.FC = () => {
           reviews: 0,
           priceRange: v.packages?.length ? "$$" : "$",
           verified: v.isVerified,
-          coverImage: `http://localhost:5000${v.profileImage?.replace(/\\/g, "/")}`,
+          coverImage: `https://gogatherhub.com:5000${v.profileImage?.replace(/\\/g, "/")}`,
           description: v.description || "No description available",
           yearsInBusiness: v.experience || 0,
           eventsCompleted: v.completedEvents || 0,
@@ -68,7 +68,7 @@ export const VendorProfile: React.FC = () => {
           portfolio:
             v.portfolios?.flatMap(
               (p: any) =>
-                p.media?.map((m: any) => `http://localhost:5000${m.url}`) || [],
+                p.media?.map((m: any) => `https://gogatherhub.com:5000${m.url}`) || [],
             ) || [],
         };
 

@@ -17,7 +17,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           <div className="h-9 w-9 bg-gray-900 rounded-lg flex items-center justify-center">
             <span className="text-white text-lg">✦</span>
           </div>
-          <span className="text-gray-900 font-semibold text-lg">EventFlow</span>
+          <span className="text-gray-900 font-semibold text-lg">GoGatherHub</span>
         </div>
       </div>
 

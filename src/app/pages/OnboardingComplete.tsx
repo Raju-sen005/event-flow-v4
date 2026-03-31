@@ -53,7 +53,7 @@ export const OnboardingComplete: React.FC = () => {
         >
           <h1 className="text-gray-900">You're All Set!</h1>
           <p className="text-gray-600 text-lg">
-            Welcome to EventFlow, {user?.name}! Your account is ready to use.
+            Welcome to GoGatherHub, {user?.name}! Your account is ready to use.
           </p>
         </motion.div>
 

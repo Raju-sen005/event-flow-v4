@@ -259,7 +259,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({
           <DialogDescription>
             {activeTab === "login"
               ? "Sign in to access your dashboard"
-              : "Join EventFlow and grow your business"}
+              : "Join GoGatherHub and grow your business"}
           </DialogDescription>
         </VisuallyHidden>
 
@@ -280,7 +280,7 @@ export const BusinessLoginModal: React.FC<BusinessLoginModalProps> = ({
             <p className="text-center text-gray-500 text-sm">
               {activeTab === "login"
                 ? "Sign in to access your dashboard"
-                : "Join EventFlow and grow your business"}
+                : "Join GoGatherHub and grow your business"}
             </p>
           </div>
 

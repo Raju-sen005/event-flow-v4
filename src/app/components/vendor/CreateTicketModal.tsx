@@ -120,7 +120,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
       return;
     }
 
-    await axios.post("http://localhost:5000/api/support/tickets", {
+    await axios.post("https://gogatherhub.com:5000/api/support/tickets", {
       vendorId,
       category: formData.category,
       subject: formData.subject,

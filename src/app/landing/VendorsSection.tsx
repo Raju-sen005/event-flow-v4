@@ -15,7 +15,7 @@ export const VendorsSection: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          "https://gogatherhub.com:5000/api/admin/category-list",
         );
 
         setCategories(res.data.data);
@@ -31,7 +31,7 @@ export const VendorsSection: React.FC = () => {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        let url = `http://localhost:5000/api/vendors`;
+        let url = `https://gogatherhub.com:5000/api/vendors`;
 
         if (activeCategory !== "All") {
           url += `?category=${encodeURIComponent(
@@ -132,7 +132,7 @@ export const VendorsSection: React.FC = () => {
               {/* Image */}
               <div className="relative h-48 overflow-hidden">
                 <img
-                  src={`http://localhost:5000${vendor.image}`}
+                  src={`https://gogatherhub.com:5000${vendor.image}`}
                   alt={vendor.businessName}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

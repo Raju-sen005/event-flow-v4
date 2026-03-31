@@ -54,7 +54,7 @@ export const Welcome: React.FC = () => {
           className="text-center mb-12"
         >
           <div className="inline-flex flex-col items-center gap-2">
-            <h1 className="text-gray-900 text-4xl font-bold">EventFlow</h1>
+            <h1 className="text-gray-900 text-4xl font-bold">GoGatherHub</h1>
             <p className="text-gray-500 text-lg">Event & Guest Management Platform</p>
           </div>
         </motion.div>
@@ -73,7 +73,7 @@ export const Welcome: React.FC = () => {
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed">
                 Whether you're planning a wedding, corporate event, or celebration, 
-                EventFlow connects you with the best vendors and tools to bring your vision to life.
+                GoGatherHub connects you with the best vendors and tools to bring your vision to life.
               </p>
             </div>
 

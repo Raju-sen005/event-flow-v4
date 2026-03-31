@@ -100,7 +100,7 @@ useEffect(() => {
 const fetchVendorPayments = async () => {
   try {
 
-    const res = await axios.get("http://localhost:5000/api/payments/vendor", {
+    const res = await axios.get("https://gogatherhub.com:5000/api/payments/vendor", {
       headers: { Authorization: `Bearer ${token}` }
     });
 

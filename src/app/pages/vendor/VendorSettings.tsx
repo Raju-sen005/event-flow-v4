@@ -40,7 +40,7 @@ export const VendorSettings: React.FC = () => {
   const fetchSettings = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/vendor/settings/${vendorId}`,
+        `https://gogatherhub.com:5000/api/vendor/settings/${vendorId}`,
       );
 
       const data = res.data || {};
@@ -66,7 +66,7 @@ export const VendorSettings: React.FC = () => {
   const saveNotifications = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/vendor/settings/notifications",
+        "https://gogatherhub.com:5000/api/vendor/settings/notifications",
         {
           vendorId,
           data: {
@@ -90,7 +90,7 @@ export const VendorSettings: React.FC = () => {
   };
 
   const savePreferences = async () => {
-    await axios.post("http://localhost:5000/api/vendor/settings/preferences", {
+    await axios.post("https://gogatherhub.com:5000/api/vendor/settings/preferences", {
       vendorId,
       language,
       timezone,
@@ -105,7 +105,7 @@ export const VendorSettings: React.FC = () => {
       return;
     }
 
-    await axios.post("http://localhost:5000/api/vendor/settings/password", {
+    await axios.post("https://gogatherhub.com:5000/api/vendor/settings/password", {
       userId: vendorId,
       currentPassword,
       newPassword,

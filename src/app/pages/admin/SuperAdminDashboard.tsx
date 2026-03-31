@@ -194,7 +194,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#16232A]">EventFlow</h2>
+                <h2 className="text-lg font-bold text-[#16232A]">GoGatherHub</h2>
                 <p className="text-xs text-gray-500">Super Admin Portal</p>
               </div>
             </div>

@@ -168,7 +168,7 @@ const Field: React.FC<{ label: string; error?: string; children: React.ReactNode
   </div>
 );
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "https://gogatherhub.com:5000/api";
 
 // ─── Login View ─────────────────────────────────────────────────────────────
 const LoginView: React.FC<{
@@ -222,7 +222,7 @@ const LoginView: React.FC<{
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-2xl font-bold text-white">Welcome back</h2>
-        <p className="text-sm text-white/50 mt-1">Sign in to your EventFlow account</p>
+        <p className="text-sm text-white/50 mt-1">Sign in to your GoGatherHub account</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -896,7 +896,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, initial
                 <div className="h-7 w-7 bg-[#FF5B04] rounded-lg flex items-center justify-center">
                   <span className="text-white text-xs font-bold">E</span>
                 </div>
-                <span className="text-sm font-semibold text-white/60">EventFlow</span>
+                <span className="text-sm font-semibold text-white/60">GoGatherHub</span>
               </div>
               <button
                 onClick={onClose}

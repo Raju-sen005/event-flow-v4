@@ -31,7 +31,7 @@ The Home Page follows these key principles:
 **Component:** Sticky navigation bar
 
 **Features:**
-- EventFlow logo (left)
+- GoGatherHub logo (left)
 - Navigation links:
   - Find Vendors
   - Browse Events
@@ -298,11 +298,11 @@ Each card shows:
 
 1. **Sarah Johnson** (Bride)
    - ⭐⭐⭐⭐⭐
-   - "EventFlow made planning our wedding incredibly easy. We found all our vendors in one place and the platform kept everything organized. Highly recommend!"
+   - "GoGatherHub made planning our wedding incredibly easy. We found all our vendors in one place and the platform kept everything organized. Highly recommend!"
 
 2. **Michael Chen** (Corporate Event Manager)
    - ⭐⭐⭐⭐⭐
-   - "As someone who organizes multiple corporate events annually, EventFlow has become my go-to platform. The vendor quality and professionalism are outstanding."
+   - "As someone who organizes multiple corporate events annually, GoGatherHub has become my go-to platform. The vendor quality and professionalism are outstanding."
 
 3. **Emily Rodriguez** (Event Planner)
    - ⭐⭐⭐⭐⭐
@@ -336,7 +336,7 @@ Each card shows:
 **Sections:**
 
 1. **Brand Column (2 cols)**
-   - EventFlow logo
+   - GoGatherHub logo
    - Platform description
 
 2. **For Customers**

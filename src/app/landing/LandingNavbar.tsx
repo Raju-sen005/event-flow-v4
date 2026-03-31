@@ -33,6 +33,7 @@ export const LandingNavbar: React.FC = () => {
     { label: "Planners", id: "planners" },
     { label: "Rentals", id: "rentals" },
     { label: "Features", id: "platform-features" },
+    { label: "Book-Now", href: "https://book.gogatherhub.com" },
   ];
 
   const handleLoginClick = () => {

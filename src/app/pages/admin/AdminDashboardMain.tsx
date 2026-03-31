@@ -211,7 +211,7 @@ export const AdminDashboardMain: React.FC = () => {
                 <span className="text-white text-xl font-bold">E</span>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#16232A]">EventFlow</h2>
+                <h2 className="text-lg font-bold text-[#16232A]">GoGatherHub</h2>
                 <p className="text-xs text-gray-500">Admin Portal</p>
               </div>
             </div>

@@ -53,7 +53,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `http://localhost:5000/api/negotiations/${id}`,
+        `https://gogatherhub.com:5000/api/negotiations/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -72,7 +72,7 @@ export const BidDetail: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get(`http://localhost:5000/api/bids/${id}`, {
+        const res = await axios.get(`https://gogatherhub.com:5000/api/bids/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -98,7 +98,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `http://localhost:5000/api/bids/event/${eventId}/total-bids`,
+        `https://gogatherhub.com:5000/api/bids/event/${eventId}/total-bids`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -123,7 +123,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/negotiations/offer",
+        "https://gogatherhub.com:5000/api/negotiations/offer",
         {
           bidId: id,
           price,
@@ -148,7 +148,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.patch(
-        `http://localhost:5000/api/negotiations/offer/${offerId}/accept`,
+        `https://gogatherhub.com:5000/api/negotiations/offer/${offerId}/accept`,
         {},
         {
           headers: {
@@ -168,7 +168,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.patch(
-        `http://localhost:5000/api/negotiations/offer/${offerId}/reject`,
+        `https://gogatherhub.com:5000/api/negotiations/offer/${offerId}/reject`,
         {},
         {
           headers: {

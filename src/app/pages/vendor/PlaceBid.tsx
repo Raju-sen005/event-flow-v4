@@ -59,7 +59,7 @@ export const PlaceBid: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "http://localhost:5000/api/vendor/packages",
+          "https://gogatherhub.com:5000/api/vendor/packages",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ export const PlaceBid: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get(`http://localhost:5000/api/bids/${id}`, {
+        const res = await axios.get(`https://gogatherhub.com:5000/api/bids/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -115,7 +115,7 @@ export const PlaceBid: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `http://localhost:5000/api/events/vendor/${requirementId}`,
+          `https://gogatherhub.com:5000/api/events/vendor/${requirementId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -142,7 +142,7 @@ export const PlaceBid: React.FC = () => {
 
   //     if (isEditMode) {
   //       await axios.put(
-  //         `http://localhost:5000/api/bids/${id}`,
+  //         `https://gogatherhub.com:5000/api/bids/${id}`,
   //         {
   //           price: data.price,
   //           packageName: data.packageName,
@@ -160,7 +160,7 @@ export const PlaceBid: React.FC = () => {
   //       alert("Bid updated successfully");
   //     } else {
   //       await axios.post(
-  //         "http://localhost:5000/api/bids",
+  //         "https://gogatherhub.com:5000/api/bids",
   //         {
   //           event_id: requirementId,
   //           price: data.price,
@@ -216,7 +216,7 @@ export const PlaceBid: React.FC = () => {
       });
 
       if (isEditMode) {
-        await axios.put(`http://localhost:5000/api/bids/${id}`, formData, {
+        await axios.put(`https://gogatherhub.com:5000/api/bids/${id}`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -225,7 +225,7 @@ export const PlaceBid: React.FC = () => {
 
         alert("Bid updated successfully");
       } else {
-        await axios.post("http://localhost:5000/api/bids", formData, {
+        await axios.post("https://gogatherhub.com:5000/api/bids", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",

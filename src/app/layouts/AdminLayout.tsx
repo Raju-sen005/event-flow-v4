@@ -82,7 +82,7 @@ export const AdminLayout: React.FC = () => {
                   <Shield className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-white font-semibold">EventFlow Admin</h1>
+                  <h1 className="text-white font-semibold">GoGatherHub Admin</h1>
                   {isSuperAdmin && (
                     <span className="text-xs text-[#FF5B04]">Super Admin</span>
                   )}

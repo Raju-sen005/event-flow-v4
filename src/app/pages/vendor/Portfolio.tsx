@@ -44,7 +44,7 @@ const CATEGORIES = {
 };
 
 export const Portfolio: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/portfolio";
+  const API_URL = "https://gogatherhub.com:5000/api/portfolio";
 
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,7 @@ export const Portfolio: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          "https://gogatherhub.com:5000/api/admin/category-list",
         );
 
         setCategories(res.data.data);
@@ -423,13 +423,13 @@ export const Portfolio: React.FC = () => {
                   {media.length > 0 ? (
                     media[0].type === "image" ? (
                       <img
-                        src={`http://localhost:5000${media[0].url}`}
+                        src={`https://gogatherhub.com:5000${media[0].url}`}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <video
-                        src={`http://localhost:5000${media[0].url}`}
+                        src={`https://gogatherhub.com:5000${media[0].url}`}
                         className="w-full h-full object-cover"
                         muted
                         controls
@@ -513,13 +513,13 @@ export const Portfolio: React.FC = () => {
                   {item.PortfolioMedia[0] ? (
                     item.PortfolioMedia[0].type === "image" ? (
                       <img
-                        src={`http://localhost:5000${item.PortfolioMedia[0].url}`}
+                        src={`https://gogatherhub.com:5000${item.PortfolioMedia[0].url}`}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <video
-                        src={`http://localhost:5000${item.PortfolioMedia[0].url}`}
+                        src={`https://gogatherhub.com:5000${item.PortfolioMedia[0].url}`}
                         className="w-full h-full object-cover"
                         muted
                         controls

@@ -66,7 +66,7 @@ export const RoleSelection: React.FC = () => {
   return (
     <AuthLayout
       title="Welcome! Let's Get Started"
-      subtitle="What do you want to do with EventFlow?"
+      subtitle="What do you want to do with GoGatherHub?"
     >
       <div className="mb-6">
         <BackButton to="/login" />

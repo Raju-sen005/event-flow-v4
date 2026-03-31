@@ -56,7 +56,7 @@ export const FinalCTA: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="text-white/60 text-lg mb-10 leading-relaxed"
           >
-            Join thousands of event planners who trust EventFlow to create magical experiences. 
+            Join thousands of event planners who trust GoGatherHub to create magical experiences. 
             Start free — no credit card required.
           </motion.p>
 

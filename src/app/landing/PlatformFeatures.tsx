@@ -58,7 +58,7 @@ const DashboardIllustration: React.FC = () => (
           <div className="h-7 w-7 bg-[#FF5B04] rounded-lg flex items-center justify-center">
             <Calendar className="h-4 w-4 text-white" />
           </div>
-          <span className="text-sm font-bold text-white">EventFlow OS</span>
+          <span className="text-sm font-bold text-white">GoGatherHub OS</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />

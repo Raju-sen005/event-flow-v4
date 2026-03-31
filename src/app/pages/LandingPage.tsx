@@ -128,7 +128,7 @@ export const LandingPage: React.FC = () => {
               <div className="h-9 w-9 bg-[#FF5B04] rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#16232A]">EventFlow</span>
+              <span className="text-xl font-bold text-[#16232A]">GoGatherHub</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -458,7 +458,7 @@ export const LandingPage: React.FC = () => {
                 Ready to Transform Your Events?
               </h2>
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                Join thousands of event planners creating extraordinary experiences with EventFlow
+                Join thousands of event planners creating extraordinary experiences with GoGatherHub
               </p>
               <div className="flex flex-wrap gap-4 justify-center pt-4">
                 <Link to="/signup">
@@ -491,7 +491,7 @@ export const LandingPage: React.FC = () => {
                 <div className="h-9 w-9 bg-[#FF5B04] rounded-xl flex items-center justify-center">
                   <Calendar className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">EventFlow</span>
+                <span className="text-xl font-bold">GoGatherHub</span>
               </div>
               <p className="text-gray-400 mb-6 max-w-sm">
                 The modern event management platform trusted by thousands of planners worldwide.
@@ -537,7 +537,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-400 text-sm">&copy; 2025 EventFlow. All rights reserved.</p>
+            <p className="text-gray-400 text-sm">&copy; 2025 GoGatherHub. All rights reserved.</p>
             <div className="flex gap-6 text-sm text-gray-400">
               <a href="#" className="hover:text-[#FF5B04] transition-colors">Status</a>
               <a href="#" className="hover:text-[#FF5B04] transition-colors">Security</a>

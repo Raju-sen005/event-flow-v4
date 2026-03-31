@@ -72,7 +72,7 @@ export const PlannerLayout: React.FC = () => {
               <div className="h-9 w-9 bg-[#075056] rounded-xl flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#16232A]">EventFlow</span>
+              <span className="text-xl font-bold text-[#16232A]">GoGatherHub</span>
               <span className="hidden sm:inline text-sm text-[#075056] font-medium">Planner</span>
             </Link>
           </div>

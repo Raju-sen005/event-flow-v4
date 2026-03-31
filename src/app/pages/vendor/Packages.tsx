@@ -51,7 +51,7 @@ const EVENT_TYPES = [
 ];
 
 export const Packages: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/vendor/packages";
+  const API_URL = "https://gogatherhub.com:5000/api/vendor/packages";
 
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +96,7 @@ export const Packages: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          "https://gogatherhub.com:5000/api/admin/category-list",
         );
 
         setCategories(res.data.data);
@@ -422,12 +422,12 @@ export const Packages: React.FC = () => {
                       pkg.images.map((img: string, i: number) => (
                         <img
                           key={i}
-                          src={`http://localhost:5000${img}`}
+                          src={`https://gogatherhub.com:5000${img}`}
                           className="w-20 h-20 object-cover rounded cursor-pointer hover:scale-105 transition"
                           onClick={() =>
                             setPreview({
                               type: "image",
-                              url: `http://localhost:5000${img}`,
+                              url: `https://gogatherhub.com:5000${img}`,
                             })
                           }
                         />
@@ -436,12 +436,12 @@ export const Packages: React.FC = () => {
                     {/* Video */}
                     {pkg.video && (
                       <video
-                        src={`http://localhost:5000${pkg.video}`}
+                        src={`https://gogatherhub.com:5000${pkg.video}`}
                         className="w-32 h-20 object-cover rounded cursor-pointer"
                         onClick={() =>
                           setPreview({
                             type: "video",
-                            url: `http://localhost:5000${pkg.video}`,
+                            url: `https://gogatherhub.com:5000${pkg.video}`,
                           })
                         }
                       />

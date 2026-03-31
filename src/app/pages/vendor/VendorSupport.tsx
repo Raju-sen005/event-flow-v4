@@ -118,7 +118,7 @@ const fetchTickets = async () => {
     const vendorId = user.id;
 
     const res = await axios.get(
-      `http://localhost:5000/api/support/tickets/vendor/${vendorId}`
+      `https://gogatherhub.com:5000/api/support/tickets/vendor/${vendorId}`
     );
 
     const ticketData = Array.isArray(res.data)

@@ -51,7 +51,7 @@ export const RequirementDetail: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `http://localhost:5000/api/events/vendor/${id}`,
+          `https://gogatherhub.com:5000/api/events/vendor/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export const RequirementDetail: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `http://localhost:5000/api/bids/event/${id}/total-bids`,
+          `https://gogatherhub.com:5000/api/bids/event/${id}/total-bids`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

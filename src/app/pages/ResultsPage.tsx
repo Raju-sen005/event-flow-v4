@@ -345,7 +345,7 @@ export const ResultsPage: React.FC = () => {
               <div className="h-9 w-9 bg-[#FF5B04] rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#16232A]">EventFlow</span>
+              <span className="text-xl font-bold text-[#16232A]">GoGatherHub</span>
             </Link>
 
             <div className="flex items-center gap-3">

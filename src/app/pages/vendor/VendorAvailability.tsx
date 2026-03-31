@@ -27,7 +27,7 @@ FETCH AVAILABILITY DATA
 
   const fetchAvailability = async () => {
     const res = await axios.get(
-      `http://localhost:5000/api/vendor/availability/${vendorId}`,
+      `https://gogatherhub.com:5000/api/vendor/availability/${vendorId}`,
     );
 
     const blocked = res.data.blockedDates.map((d: any) => d.blockedDate);
@@ -51,7 +51,7 @@ BLOCK / UNBLOCK DATE
   const toggleDate = async (dateStr: string) => {
     if (blockedDates.includes(dateStr)) {
       await axios.post(
-        "http://localhost:5000/api/vendor/availability/unblock-date",
+        "https://gogatherhub.com:5000/api/vendor/availability/unblock-date",
         {
           vendorId,
           date: dateStr,
@@ -61,7 +61,7 @@ BLOCK / UNBLOCK DATE
       setBlockedDates((prev) => prev.filter((d) => d !== dateStr));
     } else {
       await axios.post(
-        "http://localhost:5000/api/vendor/availability/block-date",
+        "https://gogatherhub.com:5000/api/vendor/availability/block-date",
         {
           vendorId,
           date: dateStr,
@@ -79,7 +79,7 @@ SAVE SETTINGS
 */
 
   const saveSettings = async () => {
-    await axios.post("http://localhost:5000/api/vendor/availability/settings", {
+    await axios.post("https://gogatherhub.com:5000/api/vendor/availability/settings", {
       vendorId,
       serviceRadius,
       workingHours,

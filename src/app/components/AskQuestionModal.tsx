@@ -44,7 +44,7 @@ export const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/questions/ask",
+        "https://gogatherhub.com:5000/api/questions/ask",
         {
           requirementId,
           subject,
