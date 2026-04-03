@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { motion } from "motion/react";
 import {
-  Search, ArrowRight, Star, Users, Building2, MapPin, TrendingUp,
-  Calendar, CheckCircle, Shield, CreditCard, Bell, BarChart3, Clock
-} from 'lucide-react';
+  Search,
+  ArrowRight,
+  Star,
+  Users,
+  Building2,
+  MapPin,
+  TrendingUp,
+  Calendar,
+  CheckCircle,
+  Shield,
+  CreditCard,
+  Bell,
+  BarChart3,
+  Clock,
+} from "lucide-react";
+import axios from "axios";
 
 const statsData = [
-  { value: '48K+', label: 'Vendors Available', icon: Building2 },
-  { value: '12K+', label: 'Events Hosted', icon: Calendar },
-  { value: '120+', label: 'Cities Covered', icon: MapPin },
-  { value: '4.9★', label: 'Customer Rating', icon: Star },
+  { value: "48K+", label: "Vendors Available", icon: Building2 },
+  { value: "12K+", label: "Events Hosted", icon: Calendar },
+  { value: "120+", label: "Cities Covered", icon: MapPin },
+  { value: "4.9★", label: "Customer Rating", icon: Star },
 ];
 
 // Dashboard Preview mockup component
@@ -29,7 +42,9 @@ const DashboardMockup: React.FC = () => (
           <div className="h-3 w-3 rounded-full bg-green-500/60" />
         </div>
         <div className="flex-1 bg-white/10 rounded-md h-5 mx-8 flex items-center px-2">
-          <span className="text-white/40 text-[10px]">eventflow.app/customer/dashboard</span>
+          <span className="text-white/40 text-[10px]">
+            eventflow.app/customer/dashboard
+          </span>
         </div>
       </div>
 
@@ -38,9 +53,24 @@ const DashboardMockup: React.FC = () => (
         {/* Top metrics row */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: 'Active Events', value: '3', color: 'text-[#FF5B04]', bg: 'bg-[#FF5B04]/10' },
-            { label: 'Vendors Hired', value: '12', color: 'text-[#075056]', bg: 'bg-[#075056]/10' },
-            { label: 'Budget Used', value: '68%', color: 'text-green-400', bg: 'bg-green-400/10' },
+            {
+              label: "Active Events",
+              value: "3",
+              color: "text-[#FF5B04]",
+              bg: "bg-[#FF5B04]/10",
+            },
+            {
+              label: "Vendors Hired",
+              value: "12",
+              color: "text-[#075056]",
+              bg: "bg-[#075056]/10",
+            },
+            {
+              label: "Budget Used",
+              value: "68%",
+              color: "text-green-400",
+              bg: "bg-green-400/10",
+            },
           ].map((m, i) => (
             <div key={i} className={`${m.bg} rounded-xl p-2.5`}>
               <div className={`text-lg font-bold ${m.color}`}>{m.value}</div>
@@ -52,12 +82,18 @@ const DashboardMockup: React.FC = () => (
         {/* Event card */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold text-white">Rohan & Priya Wedding</div>
-            <span className="text-[9px] px-2 py-0.5 bg-[#FF5B04]/20 text-[#FF5B04] rounded-full font-medium">In Progress</span>
+            <div className="text-xs font-semibold text-white">
+              Rohan & Priya Wedding
+            </div>
+            <span className="text-[9px] px-2 py-0.5 bg-[#FF5B04]/20 text-[#FF5B04] rounded-full font-medium">
+              In Progress
+            </span>
           </div>
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="h-3 w-3 text-white/40" />
-            <span className="text-[10px] text-white/50">March 28, 2026 · Grand Hyatt, Mumbai</span>
+            <span className="text-[10px] text-white/50">
+              March 28, 2026 · Grand Hyatt, Mumbai
+            </span>
           </div>
           {/* Progress bar */}
           <div className="h-1.5 bg-white/10 rounded-full">
@@ -71,17 +107,39 @@ const DashboardMockup: React.FC = () => (
 
         {/* Vendors list */}
         <div className="space-y-1.5">
-          <div className="text-[10px] text-white/40 font-medium uppercase tracking-wide">Active Vendors</div>
+          <div className="text-[10px] text-white/40 font-medium uppercase tracking-wide">
+            Active Vendors
+          </div>
           {[
-            { name: 'Kapil Photography', cat: 'Photography', status: 'Confirmed', color: 'bg-green-400' },
-            { name: 'Royal Caterers', cat: 'Catering', status: 'Pending', color: 'bg-yellow-400' },
-            { name: 'Bloom Decorators', cat: 'Decoration', status: 'Confirmed', color: 'bg-green-400' },
+            {
+              name: "Kapil Photography",
+              cat: "Photography",
+              status: "Confirmed",
+              color: "bg-green-400",
+            },
+            {
+              name: "Royal Caterers",
+              cat: "Catering",
+              status: "Pending",
+              color: "bg-yellow-400",
+            },
+            {
+              name: "Bloom Decorators",
+              cat: "Decoration",
+              status: "Confirmed",
+              color: "bg-green-400",
+            },
           ].map((v, i) => (
-            <div key={i} className="flex items-center justify-between bg-white/5 rounded-lg px-2.5 py-1.5">
+            <div
+              key={i}
+              className="flex items-center justify-between bg-white/5 rounded-lg px-2.5 py-1.5"
+            >
               <div className="flex items-center gap-2">
                 <div className={`h-1.5 w-1.5 rounded-full ${v.color}`} />
                 <div>
-                  <div className="text-[10px] font-medium text-white/80">{v.name}</div>
+                  <div className="text-[10px] font-medium text-white/80">
+                    {v.name}
+                  </div>
                   <div className="text-[9px] text-white/40">{v.cat}</div>
                 </div>
               </div>
@@ -96,8 +154,12 @@ const DashboardMockup: React.FC = () => (
             <CreditCard className="h-4 w-4 text-[#FF5B04]" />
           </div>
           <div className="flex-1">
-            <div className="text-[10px] font-medium text-white/80">Payment Milestone 2</div>
-            <div className="text-[9px] text-white/40">Due March 20 · ₹45,000</div>
+            <div className="text-[10px] font-medium text-white/80">
+              Payment Milestone 2
+            </div>
+            <div className="text-[9px] text-white/40">
+              Due March 20 · ₹45,000
+            </div>
           </div>
           <div className="text-[10px] font-semibold text-[#FF5B04]">Pay →</div>
         </div>
@@ -107,22 +169,31 @@ const DashboardMockup: React.FC = () => (
     {/* Floating notification card */}
     <motion.div
       animate={{ y: [0, -8, 0] }}
-      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       className="absolute -bottom-4 -left-6 bg-white rounded-xl p-3 shadow-2xl border border-gray-100 flex items-center gap-2.5 min-w-[180px]"
     >
       <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
         <CheckCircle className="h-4 w-4 text-green-600" />
       </div>
       <div>
-        <div className="text-[10px] font-semibold text-[#16232A]">Bid Accepted!</div>
-        <div className="text-[9px] text-gray-400">Kapil Photography • ₹85,000</div>
+        <div className="text-[10px] font-semibold text-[#16232A]">
+          Bid Accepted!
+        </div>
+        <div className="text-[9px] text-gray-400">
+          Kapil Photography • ₹85,000
+        </div>
       </div>
     </motion.div>
 
     {/* Floating rating card */}
     <motion.div
       animate={{ y: [0, 8, 0] }}
-      transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      transition={{
+        duration: 3.5,
+        repeat: Infinity,
+        ease: "easeInOut",
+        delay: 0.5,
+      }}
       className="absolute -top-4 -right-4 bg-[#16232A] border border-white/20 rounded-xl p-2.5 shadow-xl"
     >
       <div className="flex items-center gap-1.5">
@@ -136,18 +207,43 @@ const DashboardMockup: React.FC = () => (
 );
 
 export const HeroSection: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate('/signup');
+      navigate("/signup");
     }
   };
 
-  const quickSearches = ['Wedding', 'Birthday Party', 'Corporate Event', 'Engagement', 'Anniversary'];
+  const quickSearches = [
+    "Wedding",
+    "Birthday Party",
+    "Corporate Event",
+    "Engagement",
+    "Anniversary",
+  ];
 
+  const [categories, setCategories] = useState<any[]>([]);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/admin/category-list",
+        );
+
+        setCategories(res.data.data);
+      } catch (err) {
+        console.log("Category load error");
+      }
+    };
+
+    fetchCategories();
+  }, []);
   return (
     <section className="relative pt-16 min-h-screen bg-[#16232A] overflow-hidden flex flex-col">
       {/* Background decoration */}
@@ -157,8 +253,18 @@ export const HeroSection: React.FC = () => {
         {/* Grid pattern */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.03]">
           <defs>
-            <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-              <path d="M 50 0 L 0 0 0 50" fill="none" stroke="white" strokeWidth="0.5" />
+            <pattern
+              id="grid"
+              width="50"
+              height="50"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 50 0 L 0 0 0 50"
+                fill="none"
+                stroke="white"
+                strokeWidth="0.5"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
@@ -190,14 +296,27 @@ export const HeroSection: React.FC = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
                 <h1 className="text-5xl lg:text-[3.8rem] font-bold leading-[1.1] text-white">
-                  Plan Every Detail of<br />
-                  Your{' '}
+                  Plan Every Detail of
+                  <br />
+                  Your{" "}
                   <span className="text-[#FF5B04] relative">
                     Perfect Event
-                    <svg className="absolute -bottom-1 left-0 w-full" height="4" viewBox="0 0 300 4">
-                      <path d="M0 2 Q75 0 150 2 Q225 4 300 2" stroke="#FF5B04" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.5" />
+                    <svg
+                      className="absolute -bottom-1 left-0 w-full"
+                      height="4"
+                      viewBox="0 0 300 4"
+                    >
+                      <path
+                        d="M0 2 Q75 0 150 2 Q225 4 300 2"
+                        stroke="#FF5B04"
+                        strokeWidth="2.5"
+                        fill="none"
+                        strokeLinecap="round"
+                        opacity="0.5"
+                      />
                     </svg>
-                  </span>.
+                  </span>
+                  .
                 </h1>
               </motion.div>
 
@@ -208,7 +327,8 @@ export const HeroSection: React.FC = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="text-lg text-white/60 leading-relaxed max-w-lg"
               >
-                Discover vendors, hire planners, rent essentials, manage guests, and track payments — all in one powerful platform.
+                Discover vendors, hire planners, rent essentials, manage guests,
+                and track payments — all in one powerful platform.
               </motion.p>
 
               {/* Search Bar */}
@@ -237,13 +357,28 @@ export const HeroSection: React.FC = () => {
                 {/* Quick searches */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   <span className="text-xs text-white/40">Popular:</span>
-                  {quickSearches.map((q) => (
+                  {/* {quickSearches.map((q) => (
                     <button
                       key={q}
-                      onClick={() => { setSearchQuery(q); navigate('/signup'); }}
+                      onClick={() => {
+                        setSearchQuery(q);
+                        navigate("/signup");
+                      }}
                       className="text-xs px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-white/60 hover:text-white/80 transition-all"
                     >
                       {q}
+                    </button>
+                  ))} */}
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setSearchQuery(cat.name); // 🔥 quickSearch jaisa behavior
+                        navigate("/signup"); // 🔥 same action
+                      }}
+                      className="text-xs px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-white/60 hover:text-white/80 transition-all"
+                    >
+                      {cat.name}
                     </button>
                   ))}
                 </div>
@@ -279,11 +414,14 @@ export const HeroSection: React.FC = () => {
                 className="flex flex-wrap gap-6"
               >
                 {[
-                  { icon: CheckCircle, label: 'Verified Vendors' },
-                  { icon: Shield, label: 'Secure Payments' },
-                  { icon: Clock, label: 'Quick Responses' },
+                  { icon: CheckCircle, label: "Verified Vendors" },
+                  { icon: Shield, label: "Secure Payments" },
+                  { icon: Clock, label: "Quick Responses" },
                 ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-2 text-white/50 text-xs">
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 text-white/50 text-xs"
+                  >
                     <Icon className="h-3.5 w-3.5 text-[#075056]" />
                     <span>{label}</span>
                   </div>
@@ -320,7 +458,9 @@ export const HeroSection: React.FC = () => {
                   <stat.icon className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-white">{stat.value}</div>
+                  <div className="text-xl font-bold text-white">
+                    {stat.value}
+                  </div>
                   <div className="text-xs text-white/80">{stat.label}</div>
                 </div>
               </motion.div>

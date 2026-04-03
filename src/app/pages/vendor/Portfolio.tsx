@@ -45,6 +45,11 @@ const CATEGORIES = {
 
 export const Portfolio: React.FC = () => {
   const API_URL = "http://localhost:5000/api/portfolio";
+  const getMediaUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("blob:")) return url;
+    return `http://localhost:5000${url.replace(/\\/g, "/")}`;
+  };
 
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -423,13 +428,13 @@ export const Portfolio: React.FC = () => {
                   {media.length > 0 ? (
                     media[0].type === "image" ? (
                       <img
-                        src={`http://localhost:5000${media[0].url}`}
+                        src={getMediaUrl(media[0].url)}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <video
-                        src={`http://localhost:5000${media[0].url}`}
+                        src={getMediaUrl(media[0].url)}
                         className="w-full h-full object-cover"
                         muted
                         controls
@@ -513,13 +518,13 @@ export const Portfolio: React.FC = () => {
                   {item.PortfolioMedia[0] ? (
                     item.PortfolioMedia[0].type === "image" ? (
                       <img
-                        src={`http://localhost:5000${item.PortfolioMedia[0].url}`}
+                        src={getMediaUrl(item.PortfolioMedia[0].url)}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <video
-                        src={`http://localhost:5000${item.PortfolioMedia[0].url}`}
+                        src={getMediaUrl(item.PortfolioMedia[0].url)}
                         className="w-full h-full object-cover"
                         muted
                         controls
@@ -682,14 +687,16 @@ export const Portfolio: React.FC = () => {
                         >
                           {media.type === "image" ? (
                             <img
-                              src={media.url}
-                              alt=""
+                              src={getMediaUrl(media.url)}
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Video className="h-8 w-8 text-gray-400" />
-                            </div>
+                            <video
+                              src={getMediaUrl(media.url)}
+                              className="w-full h-full object-cover"
+                              muted
+                              controls
+                            />
                           )}
                         </div>
                       ))}
@@ -828,25 +835,21 @@ export const Portfolio: React.FC = () => {
                           {uploadedMedia.map((media, index) => (
                             <div
                               key={index}
-                              className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group"
+                              className="aspect-square bg-gray-100 rounded-lg overflow-hidden"
                             >
                               {media.type === "image" ? (
                                 <img
-                                  src={media.url}
-                                  alt=""
+                                  src={getMediaUrl(media.url)}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Video className="h-8 w-8 text-gray-400" />
-                                </div>
+                                <video
+                                  src={getMediaUrl(media.url)}
+                                  className="w-full h-full object-cover"
+                                  muted
+                                  controls
+                                />
                               )}
-                              <button
-                                onClick={() => handleRemoveMedia(index)}
-                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
                             </div>
                           ))}
                         </div>

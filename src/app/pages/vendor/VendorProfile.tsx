@@ -26,6 +26,8 @@ import { VendorKYC } from "../../components/vendor/VendorKYC";
 import axios from "axios";
 
 interface VendorProfile {
+  serviceCategory: any;
+  businessCategory: string | number | readonly string[] | undefined;
   businessName: string;
   profileImage: string;
   ownerName: string;
@@ -83,7 +85,10 @@ export const VendorProfile: React.FC = () => {
     serviceLocations: "",
     rating: 0,
     totalReviews: 0,
+    businessCategory: undefined,
   };
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const [vendorProfile, setVendorProfile] =
     useState<VendorProfile>(emptyProfile);
@@ -150,17 +155,25 @@ export const VendorProfile: React.FC = () => {
 
         setVendorProfile(res.data);
         setEditedProfile(res.data);
+        setSelectedCategory(res.data.category);
         setProfileExists(true);
       } catch (err: any) {
         if (err.response?.status === 404) {
           // 👇 profile nahi hai → create mode
-          const user = getUserFromToken();
+          const getUser = () => {
+            const user = localStorage.getItem("user");
+            return user ? JSON.parse(user) : null;
+          };
+          const user = getUser();
+          console.log("User from token:", user);
 
           setEditedProfile({
             ...emptyProfile,
+            businessName: user?.businessName || "",
             ownerName: user?.name || "",
             email: user?.email || "",
             phone: user?.phone || "",
+            businessCategory: user?.category || "",
           });
 
           setIsEditingProfile(true);
@@ -362,10 +375,18 @@ export const VendorProfile: React.FC = () => {
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        Category
+                        Partner Category
                       </label>
                       <p className="text-base font-semibold text-[#16232A] mt-1">
                         {vendorProfile.category}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Category
+                      </label>
+                      <p className="text-base font-semibold text-[#16232A] mt-1">
+                        {vendorProfile.serviceCategory}
                       </p>
                     </div>
                     <div>
@@ -521,27 +542,42 @@ export const VendorProfile: React.FC = () => {
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-[#16232A] mb-2 block">
+                        Partner Category *
+                      </label>
+                      <input
+                        type="text"
+                        value={editedProfile.category}
+                        disabled
+                        className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]/20 focus:border-[#FF5B04] transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-[#16232A] mb-2 block">
                         Category *
                       </label>
 
-                      <select
-                        value={editedProfile.category}
-                        onChange={(e) =>
-                          setEditedProfile({
-                            ...editedProfile,
-                            category: e.target.value,
-                          })
-                        }
-                        className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]/20 focus:border-[#FF5B04] transition-all"
-                      >
-                        <option value="">Select category</option>
-
+                      <div className="flex flex-wrap gap-2">
                         {categories.map((cat) => (
-                          <option key={cat.id} value={cat.name}>
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory(cat.name);
+                              setEditedProfile({
+                                ...editedProfile,
+                                serviceCategory: cat.name,
+                              });
+                            }}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                              editedProfile.serviceCategory === cat.name
+                                ? "bg-[#FF5B04] text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
                             {cat.name}
-                          </option>
+                          </button>
                         ))}
-                      </select>
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-[#16232A] mb-2 block">
