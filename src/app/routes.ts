@@ -154,6 +154,10 @@ import { PlannerAttendance } from './pages/planner/PlannerAttendance';
 import { PlannerSupport } from './pages/planner/PlannerSupport';
 import { PlannerSettings } from './pages/planner/PlannerSettings';
 
+import { CategoryList } from './pages/admin/CategoryList';
+import { CreateCategory } from './pages/admin/CreateCategory';
+
+
 // Error Boundary
 import { RouteErrorElement } from './components/ErrorBoundary';
 
@@ -543,6 +547,14 @@ export const router = createBrowserRouter([
       {
         path: 'bids',
         Component: BidsList,
+      },
+      {
+        path: 'categories',
+        Component: CategoryList,
+      },
+      {
+        path: 'create-category',
+        Component: CreateCategory,
       },
       {
         path: 'bids/:id',
