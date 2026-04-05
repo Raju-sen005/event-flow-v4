@@ -62,6 +62,9 @@ export const Packages: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [subCategories, setSubCategories] = useState<any[]>([]);
+  // const [eventTypes, setEventTypes] = useState<string[]>([]);
+
   const [categories, setCategories] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -124,6 +127,24 @@ export const Packages: React.FC = () => {
   const selectedCategoryObj = categories.find(
     (c) => c.name === formData.category,
   );
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!selectedCategoryObj) return;
+
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/admin/subcategories/category/${selectedCategoryObj.id}`,
+        );
+
+        setSubCategories(res.data.data);
+      } catch (err) {
+        console.log("Subcategory load error");
+      }
+    };
+
+    fetchSubCategories();
+  }, [formData.category]);
 
   const handleOpenModal = (mode: "add" | "edit", pkg?: PackageItem) => {
     setModalMode(mode);
@@ -848,19 +869,20 @@ export const Packages: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Applicable Event Types
                 </label>
+
                 <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
+                  {subCategories.map((sub) => (
                     <button
-                      key={cat.id}
+                      key={sub.id}
                       type="button"
-                      onClick={() => toggleEventType(cat.name)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedCategories.includes(cat.name)
+                      onClick={() => toggleEventType(sub.name)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                        eventTypes.includes(sub.name)
                           ? "bg-[#075056] text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      {cat.name}
+                      {sub.name}
                     </button>
                   ))}
                 </div>

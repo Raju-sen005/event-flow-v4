@@ -26,6 +26,7 @@ import { VendorKYC } from "../../components/vendor/VendorKYC";
 import axios from "axios";
 
 interface VendorProfile {
+  serviceSubCategory: any;
   serviceCategory: any;
   businessCategory: string | number | readonly string[] | undefined;
   businessName: string;
@@ -86,9 +87,34 @@ export const VendorProfile: React.FC = () => {
     rating: 0,
     totalReviews: 0,
     businessCategory: undefined,
+    serviceCategory: undefined,
+    serviceSubCategory: undefined,
   };
 
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [subCategories, setSubCategories] = useState<any[]>([]);
+  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
+    [],
+  );
+  const toggleCategory = (categoryName: string) => {
+    let updatedCategories;
+
+    if (selectedCategories.includes(categoryName)) {
+      // remove
+      updatedCategories = selectedCategories.filter((c) => c !== categoryName);
+    } else {
+      // add
+      updatedCategories = [...selectedCategories, categoryName];
+    }
+
+    setSelectedCategories(updatedCategories);
+
+    setEditedProfile({
+      ...editedProfile,
+      serviceCategory: updatedCategories, // 🔥 array store hoga
+    });
+  };
 
   const [vendorProfile, setVendorProfile] =
     useState<VendorProfile>(emptyProfile);
@@ -134,6 +160,50 @@ export const VendorProfile: React.FC = () => {
   //   setVendorProfile(editedProfile);
   //   setIsEditingProfile(false);
   // };
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      try {
+        const selectedIds = categories
+          .filter((cat) => selectedCategories.includes(cat.name))
+          .map((cat) => cat.id);
+
+        const res = await axios.post(
+          "http://localhost:5000/api/admin/subcategories/by-categories",
+          {
+            category_ids: selectedIds,
+          },
+        );
+
+        setSubCategories(res.data.data);
+      } catch (err) {
+        console.log("Subcategory error");
+      }
+    };
+
+    if (selectedCategories.length > 0) {
+      fetchSubCategories();
+    } else {
+      setSubCategories([]);
+    }
+  }, [selectedCategories]);
+
+  const toggleSubCategory = (name: string) => {
+    let updated;
+
+    if (selectedSubCategories.includes(name)) {
+      updated = selectedSubCategories.filter((s) => s !== name);
+    } else {
+      updated = [...selectedSubCategories, name];
+    }
+
+    setSelectedSubCategories(updated);
+
+    setEditedProfile({
+      ...editedProfile,
+      serviceSubCategory: updated,
+    });
+  };
 
   const handleCancelEditProfile = () => {
     setEditedProfile(vendorProfile);
@@ -189,6 +259,16 @@ export const VendorProfile: React.FC = () => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    if (vendorProfile.serviceCategory) {
+      setSelectedCategories(vendorProfile.serviceCategory);
+    }
+
+    if (vendorProfile.serviceSubCategory) {
+      setSelectedSubCategories(vendorProfile.serviceSubCategory);
+    }
+  }, [vendorProfile]);
+
   //   useEffect(() => {
   //   const fetchProfile = async () => {
   //     try {
@@ -224,7 +304,11 @@ export const VendorProfile: React.FC = () => {
       const formData = new FormData();
 
       Object.entries(editedProfile).forEach(([key, value]) => {
-        formData.append(key, value as string);
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value)); // ✅ correct
+        } else {
+          formData.append(key, value as string);
+        }
       });
 
       if (profileImage) {
@@ -386,7 +470,21 @@ export const VendorProfile: React.FC = () => {
                         Category
                       </label>
                       <p className="text-base font-semibold text-[#16232A] mt-1">
-                        {vendorProfile.serviceCategory}
+                        {/* {vendorProfile.serviceCategory} */}
+                        {Array.isArray(vendorProfile.serviceCategory)
+                          ? vendorProfile.serviceCategory.join(", ")
+                          : vendorProfile.serviceCategory}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        SubCategory
+                      </label>
+                      <p className="text-base font-semibold text-[#16232A] mt-1">
+                        {/* {vendorProfile.serviceSubCategory} */}
+                        {Array.isArray(vendorProfile.serviceSubCategory)
+                          ? vendorProfile.serviceSubCategory.join(", ")
+                          : vendorProfile.serviceSubCategory}
                       </p>
                     </div>
                     <div>
@@ -561,15 +659,9 @@ export const VendorProfile: React.FC = () => {
                           <button
                             key={cat.id}
                             type="button"
-                            onClick={() => {
-                              setSelectedCategory(cat.name);
-                              setEditedProfile({
-                                ...editedProfile,
-                                serviceCategory: cat.name,
-                              });
-                            }}
+                            onClick={() => toggleCategory(cat.name)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                              editedProfile.serviceCategory === cat.name
+                              selectedCategories.includes(cat.name)
                                 ? "bg-[#FF5B04] text-white"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
@@ -579,6 +671,30 @@ export const VendorProfile: React.FC = () => {
                         ))}
                       </div>
                     </div>
+
+                    <div>
+                      <label className="text-sm font-semibold text-[#16232A] mb-2 block">
+                        SubCategory *
+                      </label>
+
+                      <div className="flex flex-wrap gap-2">
+                        {subCategories.map((sub) => (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => toggleSubCategory(sub.name)}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                              selectedSubCategories.includes(sub.name)
+                                ? "bg-[#FF5B04] text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            {sub.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-sm font-semibold text-[#16232A] mb-2 block">
                         Experience *
