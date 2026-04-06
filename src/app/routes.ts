@@ -156,6 +156,8 @@ import { PlannerSettings } from './pages/planner/PlannerSettings';
 
 import { CategoryList } from './pages/admin/CategoryList';
 import { CreateCategory } from './pages/admin/CreateCategory';
+import { SubCategoryList } from './pages/admin/SubCategoryList';
+import { CreateSubCategory } from './pages/admin/CreateSubCategory';
 
 
 // Error Boundary
@@ -555,6 +557,14 @@ export const router = createBrowserRouter([
       {
         path: 'create-category',
         Component: CreateCategory,
+      },
+      {
+        path: 'sub-category-list',
+        Component: SubCategoryList,
+      },
+      {
+        path: 'create-sub-category',
+        Component: CreateSubCategory,
       },
       {
         path: 'bids/:id',
