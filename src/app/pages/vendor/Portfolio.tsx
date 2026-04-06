@@ -44,11 +44,11 @@ const CATEGORIES = {
 };
 
 export const Portfolio: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/portfolio";
+  const API_URL = "https://gogatherhub.com:5000//api/portfolio";
   const getMediaUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("blob:")) return url;
-    return `http://localhost:5000${url.replace(/\\/g, "/")}`;
+    return `https://gogatherhub.com:5000/${url.replace(/\\/g, "/")}`;
   };
 
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);

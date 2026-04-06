@@ -51,11 +51,11 @@ const EVENT_TYPES = [
 ];
 
 export const Packages: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/vendor/packages";
+  const API_URL = "https://gogatherhub.com:5000//api/vendor/packages";
   const getMediaUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("blob:")) return url;
-    return `http://localhost:5000${url.replace(/\\/g, "/")}`;
+    return `https://gogatherhub.com:5000/${url.replace(/\\/g, "/")}`;
   };
 
   const [packages, setPackages] = useState<PackageItem[]>([]);
@@ -134,7 +134,7 @@ export const Packages: React.FC = () => {
 
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/admin/subcategories/category/${selectedCategoryObj.id}`,
+          `https://gogatherhub.com:5000//api/admin/subcategories/category/${selectedCategoryObj.id}`,
         );
 
         setSubCategories(res.data.data);

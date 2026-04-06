@@ -233,7 +233,7 @@ export const HeroSection: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          "https://gogatherhub.com:5000//api/admin/category-list",
         );
 
         setCategories(res.data.data);

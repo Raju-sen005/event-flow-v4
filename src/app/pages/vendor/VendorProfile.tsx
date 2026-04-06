@@ -169,7 +169,7 @@ export const VendorProfile: React.FC = () => {
           .map((cat) => cat.id);
 
         const res = await axios.post(
-          "http://localhost:5000/api/admin/subcategories/by-categories",
+          "https://gogatherhub.com:5000//api/admin/subcategories/by-categories",
           {
             category_ids: selectedIds,
           },
