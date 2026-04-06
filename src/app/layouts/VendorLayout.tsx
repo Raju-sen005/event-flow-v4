@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
+import logo from "../../assests/gogatherhub-logo.png"; 
 import { Button } from "../components/ui/button";
 import {
   Briefcase,
@@ -36,7 +37,7 @@ const roleLabelMap: Record<string, string> = {
 };
 
 export const VendorLayout: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   if (user) {
     console.log(user);
   }
@@ -92,6 +93,9 @@ export const VendorLayout: React.FC = () => {
     );
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>; // ya spinner
+  }
   return (
     <div className="min-h-screen bg-[#E4EEF0]">
       {/* Top Navigation Bar */}
@@ -110,12 +114,13 @@ export const VendorLayout: React.FC = () => {
               )}
             </button>
             <Link to="/vendor/dashboard" className="flex items-center gap-2">
-              <div className="h-9 w-9 bg-[#075056] rounded-xl flex items-center justify-center">
+           <img src={logo} alt="Go Gather Hub" className="h-8 w-auto" />
+              {/* <div className="h-9 w-9 bg-[#075056] rounded-xl flex items-center justify-center">
                 <Briefcase className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-[#16232A]">
-                GoGatherHub
-              </span>
+                Go Gather Hub
+              </span> */}
               <span className="hidden sm:inline text-sm text-[#075056] font-medium">
                 {user ? roleLabelMap[user.role] : ""}
               </span>

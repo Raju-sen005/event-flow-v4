@@ -205,7 +205,7 @@ export const PlaceBid: React.FC = () => {
 
       formData.append("event_id", requirementId || "");
       formData.append("price", data.price);
-      formData.append("packageName", data.packageName);
+      formData.append("package_name", data.packageName);
       formData.append("description", data.description);
       formData.append("timeline", data.timeline);
       formData.append("addons", data.addons);

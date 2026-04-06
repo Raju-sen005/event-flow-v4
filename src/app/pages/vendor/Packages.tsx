@@ -51,11 +51,19 @@ const EVENT_TYPES = [
 ];
 
 export const Packages: React.FC = () => {
-  const API_URL = "https://gogatherhub.com:5000/api/vendor/packages";
+  const API_URL = "http://localhost:5000/api/vendor/packages";
+  const getMediaUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("blob:")) return url;
+    return `http://localhost:5000${url.replace(/\\/g, "/")}`;
+  };
 
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [subCategories, setSubCategories] = useState<any[]>([]);
+  // const [eventTypes, setEventTypes] = useState<string[]>([]);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,6 +93,14 @@ export const Packages: React.FC = () => {
     url: string;
   } | null>(null);
 
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const toggleCategory = (category: string) => {
+    if (selectedCategories.includes(category)) {
+      setSelectedCategories(selectedCategories.filter((c) => c !== category));
+    } else {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+  };
   const filteredPackages = packages.filter(
     (pkg) =>
       pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,6 +127,24 @@ export const Packages: React.FC = () => {
   const selectedCategoryObj = categories.find(
     (c) => c.name === formData.category,
   );
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!selectedCategoryObj) return;
+
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/admin/subcategories/category/${selectedCategoryObj.id}`,
+        );
+
+        setSubCategories(res.data.data);
+      } catch (err) {
+        console.log("Subcategory load error");
+      }
+    };
+
+    fetchSubCategories();
+  }, [formData.category]);
 
   const handleOpenModal = (mode: "add" | "edit", pkg?: PackageItem) => {
     setModalMode(mode);
@@ -167,71 +201,38 @@ export const Packages: React.FC = () => {
 
       const form = new FormData();
 
-      // basic fields
       form.append("name", formData.name);
       form.append("category", formData.category);
       form.append("description", formData.description);
       form.append("price", formData.price);
       form.append("status", formData.status);
 
-      // arrays → stringify
       form.append("inclusions", JSON.stringify(inclusions));
       form.append("exclusions", JSON.stringify(exclusions));
       form.append("eventTypes", JSON.stringify(eventTypes));
 
-      // images (max 4)
-      if (images) {
-        Array.from(images).forEach((file) => {
-          form.append("images", file);
-        });
-      }
+      images.forEach((file) => form.append("images", file));
 
-      // video (1)
       if (video) {
         form.append("video", video);
       }
 
       if (modalMode === "add") {
         const res = await axios.post(API_URL, form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        setPackages([res.data.data, ...packages]);
+        setPackages((prev) => [res.data.data, ...prev]);
       }
 
       if (modalMode === "edit" && selectedPackage) {
-        const form = new FormData();
-
-        form.append("name", formData.name);
-        form.append("category", formData.category);
-        form.append("description", formData.description);
-        form.append("price", formData.price);
-        form.append("status", formData.status);
-
-        form.append("inclusions", JSON.stringify(inclusions));
-        form.append("exclusions", JSON.stringify(exclusions));
-        form.append("eventTypes", JSON.stringify(eventTypes));
-
-        if (images) {
-          Array.from(images).forEach((file) => {
-            form.append("images", file);
-          });
-        }
-
-        if (video) {
-          form.append("video", video);
-        }
-
         await axios.put(`${API_URL}/${selectedPackage.id}`, form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
+
+        // optional: refetch OR update state
       }
+
       handleCloseModal();
     } catch (err) {
       console.log(err);
@@ -422,12 +423,12 @@ export const Packages: React.FC = () => {
                       pkg.images.map((img: string, i: number) => (
                         <img
                           key={i}
-                          src={`https://gogatherhub.com:5000${img}`}
+                          src={getMediaUrl(img)}
                           className="w-20 h-20 object-cover rounded cursor-pointer hover:scale-105 transition"
                           onClick={() =>
                             setPreview({
                               type: "image",
-                              url: `https://gogatherhub.com:5000${img}`,
+                              url: getMediaUrl(img),
                             })
                           }
                         />
@@ -436,12 +437,12 @@ export const Packages: React.FC = () => {
                     {/* Video */}
                     {pkg.video && (
                       <video
-                        src={`https://gogatherhub.com:5000${pkg.video}`}
+                        src={getMediaUrl(pkg.video)}
                         className="w-32 h-20 object-cover rounded cursor-pointer"
                         onClick={() =>
                           setPreview({
                             type: "video",
-                            url: `https://gogatherhub.com:5000${pkg.video}`,
+                            url: getMediaUrl(pkg.video),
                           })
                         }
                       />
@@ -868,19 +869,20 @@ export const Packages: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Applicable Event Types
                 </label>
+
                 <div className="flex flex-wrap gap-2">
-                  {EVENT_TYPES.map((eventType) => (
+                  {subCategories.map((sub) => (
                     <button
-                      key={eventType}
+                      key={sub.id}
                       type="button"
-                      onClick={() => toggleEventType(eventType)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        eventTypes.includes(eventType)
+                      onClick={() => toggleEventType(sub.name)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                        eventTypes.includes(sub.name)
                           ? "bg-[#075056] text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      {eventType}
+                      {sub.name}
                     </button>
                   ))}
                 </div>
@@ -942,7 +944,6 @@ export const Packages: React.FC = () => {
       )}
       {preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-          {/* Close button */}
           <button
             onClick={() => setPreview(null)}
             className="absolute top-5 right-5 text-white text-2xl"
@@ -950,7 +951,6 @@ export const Packages: React.FC = () => {
             ✕
           </button>
 
-          {/* Content */}
           {preview.type === "image" ? (
             <img
               src={preview.url}
