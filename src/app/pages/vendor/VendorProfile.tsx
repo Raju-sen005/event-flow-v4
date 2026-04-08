@@ -31,6 +31,7 @@ interface VendorProfile {
   businessCategory: string | number | readonly string[] | undefined;
   businessName: string;
   profileImage: string;
+  backgroundImage?: string;
   ownerName: string;
   category: string;
   location: string;
@@ -65,12 +66,14 @@ interface PackageItem {
 }
 
 export const VendorProfile: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/vendor/profile";
+  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/vendor/profile`;
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
   const [activeTab, setActiveTab] = useState<"profile" | "kyc">("profile");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   // Vendor profile state
   const emptyProfile: VendorProfile = {
@@ -144,7 +147,7 @@ export const VendorProfile: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          `${import.meta.env.VITE_API_BASE_URL}/admin/category-list`,
         );
 
         setCategories(res.data.data);
@@ -169,7 +172,7 @@ export const VendorProfile: React.FC = () => {
           .map((cat) => cat.id);
 
         const res = await axios.post(
-          "http://localhost:5000/api/admin/subcategories/by-categories",
+          `${import.meta.env.VITE_API_BASE_URL}/admin/subcategories/by-categories`,
           {
             category_ids: selectedIds,
           },
@@ -314,7 +317,9 @@ export const VendorProfile: React.FC = () => {
       if (profileImage) {
         formData.append("profileImage", profileImage);
       }
-
+      if (backgroundImage) {
+        formData.append("backgroundImage", backgroundImage);
+      }
       let res;
 
       if (profileExists) {
@@ -445,9 +450,18 @@ export const VendorProfile: React.FC = () => {
                     </div>
                     {vendorProfile.profileImage && (
                       <img
-                        src={`http://localhost:5000${vendorProfile.profileImage}`}
+                        src={`${BASE_URL}${vendorProfile.profileImage}`}
                         className="w-24 h-24 rounded-full object-cover"
                       />
+                    )}
+
+                    {vendorProfile.backgroundImage && (
+                      <div className="w-full h-48 rounded-xl overflow-hidden mb-4">
+                        <img
+                          src={`${BASE_URL}${vendorProfile.backgroundImage}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     )}
                     <div>
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -584,7 +598,7 @@ export const VendorProfile: React.FC = () => {
                               profileImage
                                 ? URL.createObjectURL(profileImage)
                                 : editedProfile.profileImage
-                                  ? `http://localhost:5000${editedProfile.profileImage}`
+                                  ? `${BASE_URL}${editedProfile.profileImage}`
                                   : "https://ui-avatars.com/api/?name=User&background=075056&color=fff"
                             }
                             className="w-full h-full object-cover"
@@ -617,6 +631,57 @@ export const VendorProfile: React.FC = () => {
                         <button
                           onClick={() => setProfileImage(null)}
                           className="text-xs text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-sm font-semibold text-gray-700">
+                        Background Image
+                      </label>
+
+                      <div className="relative group mt-2">
+                        <div className="w-full h-40 rounded-xl overflow-hidden border-2 border-gray-300">
+                          <img
+                            src={
+                              backgroundImage
+                                ? URL.createObjectURL(backgroundImage)
+                                : editedProfile.backgroundImage
+                                  ? `${BASE_URL}${editedProfile.backgroundImage}`
+                                  : "https://via.placeholder.com/800x300?text=Background+Image"
+                            }
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        {/* Overlay */}
+                        <label
+                          htmlFor="bgUpload"
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-xl cursor-pointer transition"
+                        >
+                          <span className="text-white text-sm">
+                            Change Background
+                          </span>
+                        </label>
+
+                        <input
+                          id="bgUpload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setBackgroundImage(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {backgroundImage && (
+                        <button
+                          onClick={() => setBackgroundImage(null)}
+                          className="text-xs text-red-500 mt-1 hover:underline"
                         >
                           Remove
                         </button>

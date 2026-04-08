@@ -44,7 +44,7 @@ export const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/questions/ask",
+        `${import.meta.env.VITE_API_BASE_URL}/questions/ask`,
         {
           requirementId,
           subject,

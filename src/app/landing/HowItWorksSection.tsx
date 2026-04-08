@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Store, Users, CreditCard, ArrowRight, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router';
+import { useNavigate } from 'react-router-dom';
+import { LoginModal } from './LoginModal';
 
 const steps = [
   {
@@ -43,7 +45,33 @@ const steps = [
 ];
 
 export const HowItWorksSection: React.FC = () => {
+  const navigate = useNavigate();
+  const [loginOpen, setLoginOpen] = useState(false);
+const [redirectPath, setRedirectPath] = useState("");
+
+const handleGoClick = () => {
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  if (!isLoggedIn) {
+    setLoginOpen(true);
+  } else {
+    navigate("/customer/dashboard"); // ✅ ya jo bhi main page hai
+  }
+};
+
+const handleServiceClick = (link: string) => {
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  if (!isLoggedIn) {
+    setRedirectPath(link); // 🔥 save redirect
+    setLoginOpen(true);   // 🔥 open modal
+  } else {
+    navigate(link);
+  }
+};
+
   return (
+    <>
     <section id="how-it-works" className="py-24 bg-white">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
         {/* Header */}
@@ -121,14 +149,14 @@ export const HowItWorksSection: React.FC = () => {
                 </ul>
 
                 {/* CTA */}
-                <Link
-                  to={step.link}
+                <button
+                  onClick={() => handleServiceClick(step.link)}
                   className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:gap-2"
                   style={{ color: step.color }}
                 >
                   Learn More
                   <ArrowRight className="h-3.5 w-3.5 transition-all" />
-                </Link>
+                </button>
               </div>
             </motion.div>
           ))}
@@ -141,15 +169,22 @@ export const HowItWorksSection: React.FC = () => {
           viewport={{ once: true }}
           className="mt-14 text-center"
         >
-          <Link
-            to="/signup"
+          <button
+            onClick={handleGoClick}
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#16232A] hover:bg-[#16232A]/90 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             Get Started for Free
             <ArrowRight className="h-4 w-4" />
-          </Link>
+          </button>
         </motion.div>
       </div>
     </section>
+
+    <LoginModal
+            isOpen={loginOpen}
+            onClose={() => setLoginOpen(false)}
+            initialView="login"
+          />
+    </>
   );
 };

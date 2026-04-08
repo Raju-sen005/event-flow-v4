@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from 'react-router';
-import { motion } from 'motion/react';
+import { Link } from "react-router";
+import { motion } from "motion/react";
 import {
   Search,
   Filter,
@@ -11,62 +11,81 @@ import {
   Users,
   ChevronRight,
   Bookmark,
-  Clock
-} from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { AdvancedFilterModal } from '../../components/AdvancedFilterModal';
+  Clock,
+} from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { AdvancedFilterModal } from "../../components/AdvancedFilterModal";
 
 export const RequirementsFeed: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Record<string, any>>({});
 
   const [requirements, setRequirements] = useState<any[]>([]);
-const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const categories = [
-    { id: 'all', name: 'All Categories' },
-    { id: 'catering', name: 'Catering' },
-    { id: 'photography', name: 'Photography' },
-    { id: 'decoration', name: 'Decoration' },
-    { id: 'venue', name: 'Venue' },
-    { id: 'entertainment', name: 'Entertainment' },
-  ];
+  const [categories, setCategories] = useState<any[]>([
+    { id: "all", name: "All Categories" },
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/admin/category-list`,
+        );
+
+        const apiCategories = res.data.data.map((cat: any) => ({
+          id: cat.name.toLowerCase(),
+          name: cat.name,
+        }));
+
+        setCategories([
+          { id: "all", name: "All Categories" },
+          ...apiCategories,
+        ]);
+      } catch (err) {
+        console.log("Category load error");
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const filterFields = [
     {
-      id: 'eventType',
-      label: 'Event Type',
-      type: 'select' as const,
+      id: "eventType",
+      label: "Event Type",
+      type: "select" as const,
       options: [
-        { label: 'Wedding', value: 'Wedding' },
-        { label: 'Corporate', value: 'Corporate' },
-        { label: 'Birthday', value: 'Birthday' },
-        { label: 'Engagement', value: 'Engagement' },
+        { label: "Wedding", value: "Wedding" },
+        { label: "Corporate", value: "Corporate" },
+        { label: "Birthday", value: "Birthday" },
+        { label: "Engagement", value: "Engagement" },
       ],
     },
     {
-      id: 'location',
-      label: 'Location',
-      type: 'text' as const,
-      placeholder: 'Enter city or state',
+      id: "location",
+      label: "Location",
+      type: "text" as const,
+      placeholder: "Enter city or state",
     },
     {
-      id: 'eventDate',
-      label: 'Event Date',
-      type: 'date' as const,
+      id: "eventDate",
+      label: "Event Date",
+      type: "date" as const,
     },
     {
-      id: 'budget',
-      label: 'Budget Range (₹)',
-      type: 'range' as const,
+      id: "budget",
+      label: "Budget Range (₹)",
+      type: "range" as const,
     },
     {
-      id: 'guests',
-      label: 'Number of Guests',
-      type: 'number' as const,
-      placeholder: 'Min guests',
+      id: "guests",
+      label: "Number of Guests",
+      type: "number" as const,
+      placeholder: "Min guests",
     },
   ];
 
@@ -206,65 +225,56 @@ const [loading, setLoading] = useState(true);
   // ];
 
   useEffect(() => {
+    const fetchRequirements = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-  const fetchRequirements = async () => {
-    try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/events/vendor`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
-      const token = localStorage.getItem("token");
+        setRequirements(res.data.data);
+      } catch (error) {
+        console.error("Fetch events error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      const res = await axios.get(
-        "http://localhost:5000/api/events/vendor",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+    fetchRequirements();
+  }, []);
+
+  const filteredRequirements = requirements.filter((req) => {
+    const matchesCategory =
+      selectedCategory === "all" ||
+      req.services?.some((s: any) =>
+        s.service_name.toLowerCase().includes(selectedCategory),
       );
 
-      setRequirements(res.data.data);
+    const matchesSearch =
+      req.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.notes?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    } catch (error) {
-      console.error("Fetch events error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchRequirements();
-
-}, []);
-
-  const filteredRequirements = requirements.filter(req => {
-
-  const matchesCategory =
-    selectedCategory === "all" ||
-    req.services?.some(
-      (s: any) =>
-        s.service_name.toLowerCase() === selectedCategory
-    );
-
-  const matchesSearch =
-    req.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    req.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-
-  return matchesCategory && matchesSearch;
-
-});
+    return matchesCategory && matchesSearch;
+  });
 
   if (loading) {
-  return (
-    <div className="text-center py-20">
-      Loading events...
-    </div>
-  );
-}
+    return <div className="text-center py-20">Loading events...</div>;
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-[#16232A] mb-2">Event Requirements</h1>
-        <p className="text-[#16232A]/70">Browse and bid on new event opportunities</p>
+        <p className="text-[#16232A]/70">
+          Browse and bid on new event opportunities
+        </p>
       </div>
 
       {/* Search and Filters */}
@@ -298,8 +308,8 @@ const [loading, setLoading] = useState(true);
               onClick={() => setSelectedCategory(category.id)}
               className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
                 selectedCategory === category.id
-                  ? 'bg-[#075056] text-white'
-                  : 'bg-gray-50 text-[#16232A] hover:bg-gray-100'
+                  ? "bg-[#075056] text-white"
+                  : "bg-gray-50 text-[#16232A] hover:bg-gray-100"
               }`}
             >
               {category.name}
@@ -311,7 +321,11 @@ const [loading, setLoading] = useState(true);
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-[#16232A]/70">
-          Showing <span className="font-semibold text-[#16232A]">{filteredRequirements.length}</span> requirements
+          Showing{" "}
+          <span className="font-semibold text-[#16232A]">
+            {filteredRequirements.length}
+          </span>{" "}
+          requirements
         </p>
         <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm">
           <option>Newest First</option>
@@ -341,13 +355,19 @@ const [loading, setLoading] = useState(true);
                     <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
                       {req.services?.[0]?.service_name}
                     </span>
-                    <span className={`px-3 py-1 text-xs rounded-full font-medium ${
-                      req.status === 'Open' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 text-xs rounded-full font-medium ${
+                        req.status === "Open"
+                          ? "bg-green-50 text-green-700"
+                          : "bg-gray-50 text-gray-700"
+                      }`}
+                    >
                       {req.status}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-[#16232A] mb-1">{req.name}</h3>
+                  <h3 className="font-semibold text-[#16232A] mb-1">
+                    {req.name}
+                  </h3>
                   <p className="text-sm text-[#16232A]/70">{req.eventName}</p>
                 </div>
                 <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
@@ -356,7 +376,9 @@ const [loading, setLoading] = useState(true);
               </div>
 
               {/* Description */}
-              <p className="text-sm text-[#16232A]/70 mb-4 line-clamp-2">{req.notes}</p>
+              <p className="text-sm text-[#16232A]/70 mb-4 line-clamp-2">
+                {req.notes}
+              </p>
 
               {/* Event Details */}
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -367,7 +389,10 @@ const [loading, setLoading] = useState(true);
                   <div>
                     <p className="text-xs text-[#16232A]/50">Event Date</p>
                     <p className="text-sm font-medium text-[#16232A]">
-                      {new Date(req.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      {new Date(req.date).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                      })}
                     </p>
                   </div>
                 </div>
@@ -378,7 +403,9 @@ const [loading, setLoading] = useState(true);
                   </div>
                   <div>
                     <p className="text-xs text-[#16232A]/50">Guests</p>
-                    <p className="text-sm font-medium text-[#16232A]">{req.guest }</p>
+                    <p className="text-sm font-medium text-[#16232A]">
+                      {req.guest}
+                    </p>
                   </div>
                 </div>
 
@@ -388,7 +415,9 @@ const [loading, setLoading] = useState(true);
                   </div>
                   <div>
                     <p className="text-xs text-[#16232A]/50">Location</p>
-                    <p className="text-sm font-medium text-[#16232A] truncate">{req.location}</p>
+                    <p className="text-sm font-medium text-[#16232A] truncate">
+                      {req.location}
+                    </p>
                   </div>
                 </div>
 
@@ -407,16 +436,18 @@ const [loading, setLoading] = useState(true);
 
               {/* Requirements List */}
               <div className="mb-4">
-                <p className="text-xs text-[#16232A]/50 mb-2">Key Requirements:</p>
+                <p className="text-xs text-[#16232A]/50 mb-2">
+                  Key Requirements:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {req.services?.map((service: any, idx: number) => (
-  <span
-    key={idx}
-    className="px-2 py-1 bg-gray-50 text-[#16232A] text-xs rounded"
-  >
-    {service.service_name}
-  </span>
-))}
+                    <span
+                      key={idx}
+                      className="px-2 py-1 bg-gray-50 text-[#16232A] text-xs rounded"
+                    >
+                      {service.service_name}
+                    </span>
+                  ))}
                   {req.services?.length > 3 && (
                     <span className="px-2 py-1 bg-gray-50 text-[#16232A]/50 text-xs rounded">
                       +{req.services.length - 3} more

@@ -67,7 +67,7 @@ export const EventGuests: React.FC = () => {
   // Mock guests data
   const deleteGuest = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:5000/api/guests/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/guests/${id}`);
       fetchGuests(); // refresh list
     } catch (err) {
       console.error("Delete failed", err);
@@ -83,7 +83,7 @@ export const EventGuests: React.FC = () => {
   const fetchGuests = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/guests/event/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/guests/event/${id}`,
       );
       setGuests(res.data.data);
     } catch (err) {
@@ -516,7 +516,7 @@ const AddGuestModal: React.FC<{
       console.log("eventId:", eventId);
       console.log("parsed:", parseInt(eventId));
 
-      await axios.post("http://localhost:5000/api/guests", {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/guests`, {
         event_id: Number(eventId),
         name: formData.name,
         phone: formData.phone,

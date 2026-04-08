@@ -37,7 +37,7 @@ export const Settings: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "http://localhost:5000/api/customer/profile",
+          `${import.meta.env.VITE_API_BASE_URL}/customer/profile`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -72,7 +72,7 @@ export const Settings: React.FC = () => {
     const token = localStorage.getItem("token");
 
     await axios.put(
-      "http://localhost:5000/api/customer/profile",
+      `${import.meta.env.VITE_API_BASE_URL}/customer/profile`,
       {
         firstName: profile.firstName,
         lastName: profile.lastName,
@@ -92,7 +92,7 @@ export const Settings: React.FC = () => {
     // Agar profile exist nahi karti → create
     if (err.response?.status === 404) {
       await axios.post(
-        "http://localhost:5000/api/customer/profile",
+        `${import.meta.env.VITE_API_BASE_URL}/customer/profile`,
         profile,
         {
           headers: {

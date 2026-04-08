@@ -118,7 +118,7 @@ const fetchTickets = async () => {
     const vendorId = user.id;
 
     const res = await axios.get(
-      `http://localhost:5000/api/support/tickets/vendor/${vendorId}`
+      `${import.meta.env.VITE_API_BASE_URL}/support/tickets/vendor/${vendorId}`
     );
 
     const ticketData = Array.isArray(res.data)

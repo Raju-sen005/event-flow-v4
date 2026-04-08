@@ -53,7 +53,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `http://localhost:5000/api/negotiations/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/negotiations/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -72,7 +72,7 @@ export const BidDetail: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get(`http://localhost:5000/api/bids/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bids/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -98,7 +98,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `http://localhost:5000/api/bids/event/${eventId}/total-bids`,
+        `${import.meta.env.VITE_API_BASE_URL}/bids/event/${eventId}/total-bids`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -123,7 +123,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/negotiations/offer",
+        `${import.meta.env.VITE_API_BASE_URL}/negotiations/offer`,
         {
           bidId: id,
           price,
@@ -148,7 +148,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.patch(
-        `http://localhost:5000/api/negotiations/offer/${offerId}/accept`,
+        `${import.meta.env.VITE_API_BASE_URL}/negotiations/offer/${offerId}/accept`,
         {},
         {
           headers: {
@@ -168,7 +168,7 @@ export const BidDetail: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.patch(
-        `http://localhost:5000/api/negotiations/offer/${offerId}/reject`,
+        `${import.meta.env.VITE_API_BASE_URL}/negotiations/offer/${offerId}/reject`,
         {},
         {
           headers: {

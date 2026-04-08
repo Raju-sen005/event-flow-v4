@@ -6,9 +6,11 @@ import { Link, useNavigate } from "react-router";
 import { LoginModal } from "../landing/LoginModal"; // path adjust karo
 
 export const VendorsSection: React.FC = () => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+  
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
-  const [showAll, setShowAll] = useState(false);
+  // const [showAll, setShowAll] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const isLoggedIn = !!localStorage.getItem("token");
@@ -17,7 +19,7 @@ export const VendorsSection: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          `${import.meta.env.VITE_API_BASE_URL}/admin/category-list`,
         );
 
         setCategories(res.data.data);
@@ -33,7 +35,7 @@ export const VendorsSection: React.FC = () => {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        let url = `http://localhost:5000/api/vendors`;
+        let url = `${import.meta.env.VITE_API_BASE_URL}/vendors`;
 
         if (activeCategory !== "All") {
           url += `?category=${encodeURIComponent(
@@ -53,12 +55,12 @@ export const VendorsSection: React.FC = () => {
 
   // ✅ Reset Load More on category change
   useEffect(() => {
-    setShowAll(false);
+    // setShowAll(false);
   }, [activeCategory]);
 
   // reset load more on category change
   useEffect(() => {
-    setShowAll(false);
+    // setShowAll(false);
   }, [activeCategory]);
 
   const filtered =
@@ -66,7 +68,8 @@ export const VendorsSection: React.FC = () => {
       ? vendors
       : vendors.filter((v) => v.category === activeCategory);
 
-  const displayed = showAll ? vendors : vendors.slice(0, 6);
+  // const displayed = showAll ? vendors : vendors.slice(0, 6);
+  const displayed = filtered.slice(0, 6);
   const [loginOpen, setLoginOpen] = useState(false);
   return (
     <>
@@ -115,7 +118,7 @@ export const VendorsSection: React.FC = () => {
                 key={cat.id}
                 onClick={() => {
                   setActiveCategory(cat.name);
-                  setShowAll(false);
+                  // setShowAll(false);
                 }}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeCategory === cat.name
@@ -142,7 +145,7 @@ export const VendorsSection: React.FC = () => {
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={`http://localhost:5000${vendor.image}`}
+                    src={`${BASE_URL}${vendor.backgroundImage}`}
                     alt={vendor.businessName}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -219,7 +222,7 @@ export const VendorsSection: React.FC = () => {
           </div>
 
           {/* Load More */}
-          {!showAll && filtered.length > 6 && (
+          {/* {!showAll && filtered.length > 6 && (
             <div className="text-center mt-10">
               <button
                 onClick={() => setShowAll(true)}
@@ -229,7 +232,7 @@ export const VendorsSection: React.FC = () => {
                 <ChevronDown className="h-4 w-4" />
               </button>
             </div>
-          )}
+          )} */}
 
           {filtered.length === 0 && (
             <div className="text-center py-16 text-gray-400">

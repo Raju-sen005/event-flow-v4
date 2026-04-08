@@ -83,7 +83,7 @@ export const TicketDetail: React.FC = () => {
   useEffect(() => {
     const fetchTicket = async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/support/tickets/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/support/tickets/${id}`,
       );
 
       setTicket(res.data);
@@ -143,7 +143,7 @@ export const TicketDetail: React.FC = () => {
   const senderId = user.id;
 
   const response = await axios.post(
-    `http://localhost:5000/api/support/tickets/${id}/reply`,
+    `${import.meta.env.VITE_API_BASE_URL}/support/tickets/${id}/reply`,
     {
       senderId,
       senderRole: "vendor",

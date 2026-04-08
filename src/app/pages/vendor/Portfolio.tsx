@@ -44,11 +44,13 @@ const CATEGORIES = {
 };
 
 export const Portfolio: React.FC = () => {
-  const API_URL = "http://localhost:5000/api/portfolio";
+  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/portfolio`;
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+
   const getMediaUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("blob:")) return url;
-    return `http://localhost:5000${url.replace(/\\/g, "/")}`;
+    return `${BASE_URL}${url.replace(/\\/g, "/")}`;
   };
 
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
@@ -108,7 +110,7 @@ export const Portfolio: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/admin/category-list",
+          `${import.meta.env.VITE_API_BASE_URL}/admin/category-list`,
         );
 
         setCategories(res.data.data);

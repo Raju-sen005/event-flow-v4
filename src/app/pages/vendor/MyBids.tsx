@@ -66,7 +66,7 @@ export const MyBids: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get("http://localhost:5000/api/bids/my-bids", {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bids/my-bids`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -135,7 +135,7 @@ export const MyBids: React.FC = () => {
   const handleWithdrawBid = async (reason: string) => {
     const token = localStorage.getItem("token");
 
-    await axios.delete(`http://localhost:5000/api/bids/${selectedBid.id}`, {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/bids/${selectedBid.id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -151,7 +151,7 @@ export const MyBids: React.FC = () => {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/messages",
+        `${import.meta.env.VITE_API_BASE_URL}/messages`,
         {
           bidId: selectedBid.id,
           message,
