@@ -59,7 +59,7 @@ export const PlaceBid: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "https://gogatherhub.com:5000/api/vendor/packages",
+          `${import.meta.env.VITE_API_BASE_URL}/vendor/packages`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ export const PlaceBid: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get(`https://gogatherhub.com:5000/api/bids/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bids/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -115,7 +115,7 @@ export const PlaceBid: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `https://gogatherhub.com:5000/api/events/vendor/${requirementId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/events/vendor/${requirementId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -216,7 +216,7 @@ export const PlaceBid: React.FC = () => {
       });
 
       if (isEditMode) {
-        await axios.put(`https://gogatherhub.com:5000/api/bids/${id}`, formData, {
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/bids/${id}`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -225,7 +225,7 @@ export const PlaceBid: React.FC = () => {
 
         alert("Bid updated successfully");
       } else {
-        await axios.post("https://gogatherhub.com:5000/api/bids", formData, {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/bids`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",

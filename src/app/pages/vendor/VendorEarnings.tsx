@@ -100,7 +100,7 @@ useEffect(() => {
 const fetchVendorPayments = async () => {
   try {
 
-    const res = await axios.get("https://gogatherhub.com:5000/api/payments/vendor", {
+    const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/payments/vendor`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

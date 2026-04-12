@@ -51,11 +51,13 @@ const EVENT_TYPES = [
 ];
 
 export const Packages: React.FC = () => {
-  const API_URL = "https://gogatherhub.com:5000//api/vendor/packages";
+  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/vendor/packages`;
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+
   const getMediaUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("blob:")) return url;
-    return `https://gogatherhub.com:5000/${url.replace(/\\/g, "/")}`;
+    return `${BASE_URL}${url.replace(/\\/g, "/")}`;
   };
 
   const [packages, setPackages] = useState<PackageItem[]>([]);
@@ -93,6 +95,7 @@ export const Packages: React.FC = () => {
     url: string;
   } | null>(null);
 
+  
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const toggleCategory = (category: string) => {
     if (selectedCategories.includes(category)) {
@@ -112,7 +115,7 @@ export const Packages: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "https://gogatherhub.com:5000/api/admin/category-list",
+          `${import.meta.env.VITE_API_BASE_URL}/admin/category-list`,
         );
 
         setCategories(res.data.data);
@@ -134,7 +137,7 @@ export const Packages: React.FC = () => {
 
       try {
         const res = await axios.get(
-          `https://gogatherhub.com:5000//api/admin/subcategories/category/${selectedCategoryObj.id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/admin/subcategories/category/${selectedCategoryObj.id}`,
         );
 
         setSubCategories(res.data.data);

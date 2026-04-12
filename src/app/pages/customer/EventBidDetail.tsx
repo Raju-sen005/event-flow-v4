@@ -135,7 +135,7 @@ export const EventBidDetail: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`https://gogatherhub.com:5000/api/bids/${bidId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bids/${bidId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -289,7 +289,7 @@ export const EventBidDetail: React.FC = () => {
             <div className="flex items-start gap-4 mb-6">
               <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                 <img
-                  src={`https://gogatherhub.com:5000${bid.vendor?.VendorProfile?.profileImage}`}
+                  src={`${import.meta.env.VITE_API_BASE_URL}${bid.vendor?.VendorProfile?.profileImage}`}
                   alt={bid.vendor?.name}
                   className="w-full h-full object-cover"
                 />

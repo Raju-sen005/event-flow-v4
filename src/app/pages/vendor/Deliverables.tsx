@@ -396,7 +396,7 @@ export const Deliverables: React.FC = () => {
                   <div className="flex gap-2">
                     {deliverable.fileUrl && (
                       <a
-                        href={`https://gogatherhub.com:5000${deliverable.fileUrl}`}
+                        href={`${import.meta.env.VITE_API_BASE_URL}${deliverable.fileUrl}`}
                         download
                       >
                         <Button variant="outline" size="sm">

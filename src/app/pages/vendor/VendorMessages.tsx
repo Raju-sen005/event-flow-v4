@@ -34,7 +34,7 @@ export const VendorMessages: React.FC = () => {
     const fetchChats = async () => {
       try {
         const res = await axios.get(
-          "https://gogatherhub.com:5000/api/messages/chats",
+          `${import.meta.env.VITE_API_BASE_URL}/messages/chats`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -63,7 +63,7 @@ export const VendorMessages: React.FC = () => {
     const fetchMessages = async () => {
       try {
         const res = await axios.get(
-          `https://gogatherhub.com:5000/api/messages/${selectedChat}`,
+          `${import.meta.env.VITE_API_BASE_URL}/messages/${selectedChat}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -129,7 +129,7 @@ export const VendorMessages: React.FC = () => {
 
     try {
       const res = await axios.post(
-        "https://gogatherhub.com:5000/api/messages",
+        `${import.meta.env.VITE_API_BASE_URL}/messages`,
         {
           bidId: selectedChat,
           message: messageText,

@@ -207,7 +207,7 @@ const Field: React.FC<{
   </div>
 );
 
-const BASE_URL = "https://gogatherhub.com:5000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // ─── Login View ─────────────────────────────────────────────────────────────
 const LoginView: React.FC<{

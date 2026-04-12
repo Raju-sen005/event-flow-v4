@@ -37,6 +37,8 @@ const roleLabelMap: Record<string, string> = {
 };
 
 export const VendorLayout: React.FC = () => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+
   const { user, logout, isLoading } = useAuth();
   if (user) {
     console.log(user);
@@ -150,7 +152,7 @@ export const VendorLayout: React.FC = () => {
                   <img
                     src={
                       user?.profileImage
-                        ? `https://gogatherhub.com:5000${user.profileImage}`
+                        ? `${BASE_URL}${user.profileImage}`
                         : `https://ui-avatars.com/api/?name=${user?.name}&background=075056&color=fff`
                     }
                     className="w-full h-full object-cover"

@@ -36,6 +36,8 @@ type VendorType = {
 };
 
 export const VendorProfile: React.FC = () => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
@@ -46,7 +48,9 @@ export const VendorProfile: React.FC = () => {
   useEffect(() => {
     const fetchVendor = async () => {
       try {
-        const res = await axios.get(`https://gogatherhub.com:5000/api/vendors/${id}`);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/vendors/${id}`,
+        );
 
         const v = res.data.data;
 
@@ -59,16 +63,22 @@ export const VendorProfile: React.FC = () => {
           reviews: 0,
           priceRange: v.packages?.length ? "$$" : "$",
           verified: v.isVerified,
-          coverImage: `https://gogatherhub.com:5000${v.profileImage?.replace(/\\/g, "/")}`,
-          description: v.description || "No description available",
+          coverImage: v.backgroundImage
+            ? `${BASE_URL}${v.backgroundImage.replace(/\\/g, "/")}`
+            : v.profileImage
+              ? `${BASE_URL}${v.profileImage.replace(/\\/g, "/")}`
+              : "https://via.placeholder.com/800x300?text=No+Image",
+          description:
+            v.description && v.description !== "null"
+              ? v.description
+              : "No description available",
           yearsInBusiness: v.experience || 0,
           eventsCompleted: v.completedEvents || 0,
           responseTime: "2-4 hours",
-          services: v.services || [],
+          services: v.serviceCategory || [],
           portfolio:
             v.portfolios?.flatMap(
-              (p: any) =>
-                p.media?.map((m: any) => `https://gogatherhub.com:5000${m.url}`) || [],
+              (p: any) => p.media?.map((m: any) => `${BASE_URL}${m.url}`) || [],
             ) || [],
         };
 
