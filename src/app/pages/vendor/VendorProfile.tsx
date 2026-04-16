@@ -24,6 +24,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { VendorKYC } from "../../components/vendor/VendorKYC";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 
 interface VendorProfile {
   serviceSubCategory: any;
@@ -75,7 +76,9 @@ export const VendorProfile: React.FC = () => {
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
+  const { updateUser } = useAuth();
   // Vendor profile state
+
   const emptyProfile: VendorProfile = {
     businessName: "",
     profileImage: "",
@@ -293,22 +296,70 @@ export const VendorProfile: React.FC = () => {
   //   fetchProfile();
   // }, []);
 
+  // const handleSaveProfile = async () => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) return alert("Unauthorized");
+
+  //     const config = {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     };
+
+  //     // let res;
+
+  //     const formData = new FormData();
+
+  //     Object.entries(editedProfile).forEach(([key, value]) => {
+  //       if (Array.isArray(value)) {
+  //         formData.append(key, JSON.stringify(value)); // ✅ correct
+  //       } else {
+  //         formData.append(key, value as string);
+  //       }
+  //     });
+
+  //     if (profileImage) {
+  //       formData.append("profileImage", profileImage);
+  //     }
+  //     if (backgroundImage) {
+  //       formData.append("backgroundImage", backgroundImage);
+  //     }
+  //     let res;
+
+  //     if (profileExists) {
+  //       res = await axios.put(API_URL, formData, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       });
+  //     } else {
+  //       res = await axios.post(API_URL, formData, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       });
+  //     }
+
+  //     setIsEditingProfile(false);
+  //     setVendorProfile(res.data.profile);
+  //     setEditedProfile(res.data.profile);
+  //     alert("Profile saved successfully");
+  //   } catch (err: any) {
+  //     alert(err.response?.data?.message || "Save failed");
+  //   }
+  // };
+
   const handleSaveProfile = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return alert("Unauthorized");
 
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-
-      // let res;
-
       const formData = new FormData();
 
       Object.entries(editedProfile).forEach(([key, value]) => {
         if (Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value)); // ✅ correct
+          formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, value as string);
         }
@@ -320,6 +371,7 @@ export const VendorProfile: React.FC = () => {
       if (backgroundImage) {
         formData.append("backgroundImage", backgroundImage);
       }
+
       let res;
 
       if (profileExists) {
@@ -338,9 +390,20 @@ export const VendorProfile: React.FC = () => {
         });
       }
 
+      const updatedProfile = res.data.profile;
+
+      // 🔥 GLOBAL UPDATE (Navbar instantly change)
+      updateUser({
+        profileImage: updatedProfile.profileImage,
+        name: updatedProfile.ownerName,
+        role: updatedProfile.category,
+      });
+
+      // ✅ Local state update
+      setVendorProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
       setIsEditingProfile(false);
-      setVendorProfile(res.data.profile);
-      setEditedProfile(res.data.profile);
+
       alert("Profile saved successfully");
     } catch (err: any) {
       alert(err.response?.data?.message || "Save failed");
@@ -439,6 +502,14 @@ export const VendorProfile: React.FC = () => {
               {!isEditingProfile ? (
                 // View Mode
                 <div className="space-y-6">
+                  {vendorProfile.backgroundImage && (
+                    <div className="w-full h-48 rounded-xl overflow-hidden mb-4">
+                      <img
+                        src={`${BASE_URL}${vendorProfile.backgroundImage}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -455,14 +526,14 @@ export const VendorProfile: React.FC = () => {
                       />
                     )}
 
-                    {vendorProfile.backgroundImage && (
+                    {/* {vendorProfile.backgroundImage && (
                       <div className="w-full h-48 rounded-xl overflow-hidden mb-4">
                         <img
                           src={`${BASE_URL}${vendorProfile.backgroundImage}`}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                    )}
+                    )} */}
                     <div>
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                         Owner Name
@@ -576,6 +647,7 @@ export const VendorProfile: React.FC = () => {
                       <input
                         type="text"
                         value={editedProfile.businessName}
+                        disabled
                         onChange={(e) =>
                           setEditedProfile({
                             ...editedProfile,
@@ -694,6 +766,7 @@ export const VendorProfile: React.FC = () => {
                       <input
                         type="text"
                         value={editedProfile.ownerName}
+                        disabled
                         onChange={(e) =>
                           setEditedProfile({
                             ...editedProfile,
@@ -816,6 +889,7 @@ export const VendorProfile: React.FC = () => {
                       <input
                         type="text"
                         value={editedProfile.phone}
+                        disabled
                         onChange={(e) =>
                           setEditedProfile({
                             ...editedProfile,
@@ -832,6 +906,7 @@ export const VendorProfile: React.FC = () => {
                       <input
                         type="email"
                         value={editedProfile.email}
+                        disabled
                         onChange={(e) =>
                           setEditedProfile({
                             ...editedProfile,

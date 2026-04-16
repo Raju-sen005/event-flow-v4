@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { motion, AnimatePresence } from 'motion/react';
-import { Button } from '@/app/components/ui/button';
-import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router";
+import { motion, AnimatePresence } from "motion/react";
+import { Button } from "@/app/components/ui/button";
+import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import {
   ArrowLeft,
   Search,
@@ -24,8 +24,10 @@ import {
   Music,
   PartyPopper,
   Users,
-  Loader2
-} from 'lucide-react';
+  Loader2,
+} from "lucide-react";
+import { useEffect } from "react";
+import axios from "axios";
 
 // Types
 type Vendor = {
@@ -50,145 +52,218 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
   const navigate = useNavigate();
 
   // State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>('all');
-  const [priceRangeFilter, setPriceRangeFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedServiceFilter, setSelectedServiceFilter] =
+    useState<string>("all");
+  const [priceRangeFilter, setPriceRangeFilter] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<number>(0);
-  const [locationFilter, setLocationFilter] = useState<string>('all');
-  const [experienceFilter, setExperienceFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [experienceFilter, setExperienceFilter] = useState<string>("all");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [addingVendorId, setAddingVendorId] = useState<string | null>(null);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+
+  const fetchVendors = async () => {
+    try {
+      if (!eventId) return;
+
+      setIsLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/vendors/event/${eventId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      const data = res.data?.data || [];
+
+      const mapped = data.map((v: any) => ({
+        id: v.id,
+        name: v.businessName,
+        category: v.category?.toLowerCase(), // normalize
+        rating: v.rating || 4,
+        reviews: v.reviews || 0,
+        priceRange: "$$",
+        startingPrice: v.packages?.[0]?.price || 1000, // correct source
+        location: v.location,
+        image: v.profileImage || "/placeholder.jpg",
+        verified: v.verified || false,
+        experience: v.experience + " years",
+        availability: true,
+        services: v.services || [],
+        eventTypes: v.event_types || [],
+      }));
+
+      setVendors(mapped);
+    } catch (err) {
+      console.error("Fetch vendors error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendors();
+  }, [eventId]);
 
   // Mock event data
   const event = {
-    id: eventId || '1',
-    name: 'Sarah & John Wedding',
-    category: 'Wedding',
-    date: '2026-06-15',
-    location: 'New York',
-    managementMode: 'self-managed' as 'self-managed' | 'planner-managed',
-    services: ['Photography', 'Videography', 'Catering', 'DJ Services', 'Decoration', 'Venue']
+    id: eventId || "1",
+    name: "Sarah & John Wedding",
+    category: "Wedding",
+    date: "2026-06-15",
+    location: "New York",
+    managementMode: "self-managed" as "self-managed" | "planner-managed",
+    services: [
+      "Photography",
+      "Videography",
+      "Catering",
+      "DJ Services",
+      "Decoration",
+      "Venue",
+    ],
   };
 
   // Mock vendors (pre-filtered by system)
   const allVendors: Vendor[] = [
     {
-      id: '1',
-      name: 'Elite Photography Studio',
-      category: 'Photography',
+      id: "1",
+      name: "Elite Photography Studio",
+      category: "Photography",
       rating: 4.9,
       reviews: 127,
-      priceRange: '$$$',
+      priceRange: "$$$",
       startingPrice: 3500,
-      location: 'New York, NY',
-      image: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400&h=300&fit=crop',
+      location: "New York, NY",
+      image:
+        "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400&h=300&fit=crop",
       verified: true,
-      experience: '10+ years',
+      experience: "10+ years",
       availability: true,
-      services: ['Photography', 'Photo Editing', 'Albums'],
-      eventTypes: ['Wedding', 'Corporate', 'Birthday']
+      services: ["Photography", "Photo Editing", "Albums"],
+      eventTypes: ["Wedding", "Corporate", "Birthday"],
     },
     {
-      id: '2',
-      name: 'Gourmet Catering Co.',
-      category: 'Catering',
+      id: "2",
+      name: "Gourmet Catering Co.",
+      category: "Catering",
       rating: 4.8,
       reviews: 89,
-      priceRange: '$$$$',
+      priceRange: "$$$$",
       startingPrice: 8000,
-      location: 'New York, NY',
-      image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&h=300&fit=crop',
+      location: "New York, NY",
+      image:
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=400&h=300&fit=crop",
       verified: true,
-      experience: '15+ years',
+      experience: "15+ years",
       availability: true,
-      services: ['Catering', 'Buffet', 'Plated Meals', 'Bar Service'],
-      eventTypes: ['Wedding', 'Corporate', 'Anniversary']
+      services: ["Catering", "Buffet", "Plated Meals", "Bar Service"],
+      eventTypes: ["Wedding", "Corporate", "Anniversary"],
     },
     {
-      id: '3',
-      name: 'DJ Beats Entertainment',
-      category: 'DJ Services',
+      id: "3",
+      name: "DJ Beats Entertainment",
+      category: "DJ Services",
       rating: 4.7,
       reviews: 56,
-      priceRange: '$$',
+      priceRange: "$$",
       startingPrice: 1500,
-      location: 'Brooklyn, NY',
-      image: 'https://images.unsplash.com/photo-1571266028243-d220c6e2e4e4?w=400&h=300&fit=crop',
+      location: "Brooklyn, NY",
+      image:
+        "https://images.unsplash.com/photo-1571266028243-d220c6e2e4e4?w=400&h=300&fit=crop",
       verified: false,
-      experience: '5+ years',
+      experience: "5+ years",
       availability: true,
-      services: ['DJ Services', 'Sound System', 'Lighting'],
-      eventTypes: ['Wedding', 'Birthday', 'Corporate']
+      services: ["DJ Services", "Sound System", "Lighting"],
+      eventTypes: ["Wedding", "Birthday", "Corporate"],
     },
     {
-      id: '4',
-      name: 'Cinematic Moments',
-      category: 'Videography',
+      id: "4",
+      name: "Cinematic Moments",
+      category: "Videography",
       rating: 4.9,
       reviews: 93,
-      priceRange: '$$$',
+      priceRange: "$$$",
       startingPrice: 4500,
-      location: 'Manhattan, NY',
-      image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&h=300&fit=crop',
+      location: "Manhattan, NY",
+      image:
+        "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&h=300&fit=crop",
       verified: true,
-      experience: '8+ years',
+      experience: "8+ years",
       availability: true,
-      services: ['Videography', 'Drone Coverage', 'Same-day Edit'],
-      eventTypes: ['Wedding', 'Corporate']
+      services: ["Videography", "Drone Coverage", "Same-day Edit"],
+      eventTypes: ["Wedding", "Corporate"],
     },
     {
-      id: '5',
-      name: 'Elegant Event Decor',
-      category: 'Decoration',
+      id: "5",
+      name: "Elegant Event Decor",
+      category: "Decoration",
       rating: 4.6,
       reviews: 71,
-      priceRange: '$$$',
+      priceRange: "$$$",
       startingPrice: 3000,
-      location: 'Queens, NY',
-      image: 'https://images.unsplash.com/photo-1519167758481-83f29da8e843?w=400&h=300&fit=crop',
+      location: "Queens, NY",
+      image:
+        "https://images.unsplash.com/photo-1519167758481-83f29da8e843?w=400&h=300&fit=crop",
       verified: true,
-      experience: '12+ years',
+      experience: "12+ years",
       availability: true,
-      services: ['Decoration', 'Floral Design', 'Lighting'],
-      eventTypes: ['Wedding', 'Anniversary', 'Birthday']
+      services: ["Decoration", "Floral Design", "Lighting"],
+      eventTypes: ["Wedding", "Anniversary", "Birthday"],
     },
     {
-      id: '6',
-      name: 'Perfect Pixels Photography',
-      category: 'Photography',
+      id: "6",
+      name: "Perfect Pixels Photography",
+      category: "Photography",
       rating: 4.5,
       reviews: 42,
-      priceRange: '$$',
+      priceRange: "$$",
       startingPrice: 2000,
-      location: 'Bronx, NY',
-      image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400&h=300&fit=crop',
+      location: "Bronx, NY",
+      image:
+        "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400&h=300&fit=crop",
       verified: false,
-      experience: '3+ years',
+      experience: "3+ years",
       availability: true,
-      services: ['Photography', 'Photo Booth'],
-      eventTypes: ['Wedding', 'Birthday']
-    }
+      services: ["Photography", "Photo Booth"],
+      eventTypes: ["Wedding", "Birthday"],
+    },
   ];
 
   // Apply customer filters
-  const filteredVendors = allVendors.filter((vendor) => {
+  const filteredVendors = vendors.filter((vendor) => {
     // Search query
-    if (searchQuery && !vendor.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (
+      searchQuery &&
+      !vendor.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
       return false;
     }
 
     // Service filter
-    if (selectedServiceFilter !== 'all' && vendor.category !== selectedServiceFilter) {
+    if (
+      selectedServiceFilter !== "all" &&
+      vendor.category.toLowerCase() !== selectedServiceFilter.toLowerCase()
+    ) {
       return false;
     }
 
     // Price range filter
-    if (priceRangeFilter !== 'all') {
-      if (priceRangeFilter === 'budget' && vendor.startingPrice > 2500) return false;
-      if (priceRangeFilter === 'mid' && (vendor.startingPrice < 2500 || vendor.startingPrice > 5000)) return false;
-      if (priceRangeFilter === 'premium' && vendor.startingPrice < 5000) return false;
+    if (priceRangeFilter !== "all") {
+      if (priceRangeFilter === "budget" && vendor.startingPrice > 2500)
+        return false;
+      if (
+        priceRangeFilter === "mid" &&
+        (vendor.startingPrice < 2500 || vendor.startingPrice > 5000)
+      )
+        return false;
+      if (priceRangeFilter === "premium" && vendor.startingPrice < 5000)
+        return false;
     }
 
     // Rating filter
@@ -197,37 +272,49 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
     }
 
     // Location filter
-    if (locationFilter !== 'all' && !vendor.location.toLowerCase().includes(locationFilter.toLowerCase())) {
+    if (
+      locationFilter !== "all" &&
+      !vendor.location.toLowerCase().includes(locationFilter.toLowerCase())
+    ) {
       return false;
     }
 
     // Experience filter
-    if (experienceFilter !== 'all') {
-      if (experienceFilter === 'entry' && !vendor.experience.includes('3+')) return false;
-      if (experienceFilter === 'mid' && !vendor.experience.match(/5\+|8\+|10\+|12\+|15\+/)) return false;
-      if (experienceFilter === 'expert' && !vendor.experience.match(/10\+|12\+|15\+/)) return false;
+    if (experienceFilter !== "all") {
+      if (experienceFilter === "entry" && !vendor.experience.includes("3+"))
+        return false;
+      if (
+        experienceFilter === "mid" &&
+        !vendor.experience.match(/5\+|8\+|10\+|12\+|15\+/)
+      )
+        return false;
+      if (
+        experienceFilter === "expert" &&
+        !vendor.experience.match(/10\+|12\+|15\+/)
+      )
+        return false;
     }
 
     return true;
   });
 
   // Check if any filter is active
-  const hasActiveFilters = 
-    selectedServiceFilter !== 'all' ||
-    priceRangeFilter !== 'all' ||
+  const hasActiveFilters =
+    selectedServiceFilter !== "all" ||
+    priceRangeFilter !== "all" ||
     ratingFilter > 0 ||
-    locationFilter !== 'all' ||
-    experienceFilter !== 'all' ||
-    searchQuery !== '';
+    locationFilter !== "all" ||
+    experienceFilter !== "all" ||
+    searchQuery !== "";
 
   // Reset all filters
   const resetFilters = () => {
-    setSelectedServiceFilter('all');
-    setPriceRangeFilter('all');
+    setSelectedServiceFilter("all");
+    setPriceRangeFilter("all");
     setRatingFilter(0);
-    setLocationFilter('all');
-    setExperienceFilter('all');
-    setSearchQuery('');
+    setLocationFilter("all");
+    setExperienceFilter("all");
+    setSearchQuery("");
   };
 
   // Handle add vendor
@@ -240,21 +327,33 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
   const confirmAddVendor = async () => {
     if (!selectedVendor) return;
 
-    setAddingVendorId(selectedVendor.id);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      setAddingVendorId(selectedVendor.id);
 
-    setAddingVendorId(null);
-    setShowConfirmModal(false);
-    setSelectedVendor(null);
+      const token = localStorage.getItem("token");
 
-    // Navigate back to event vendors tab
-    navigate(`/customer/events/${eventId}?tab=vendors`);
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/events/add-vendor`,
+        {
+          eventId,
+          vendorId: selectedVendor.id,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      navigate(`/customer/events/${eventId}?tab=vendors`);
+    } catch (err) {
+      console.error("Add vendor error:", err);
+    } finally {
+      setAddingVendorId(null);
+      setShowConfirmModal(false);
+    }
   };
 
   // If planner-managed
-  if (event.managementMode === 'planner-managed') {
+  if (event.managementMode === "planner-managed") {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4">
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center">
@@ -267,7 +366,10 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
           <p className="text-lg text-[#16232A]/70 mb-6">
             Your Event Planner manages vendor selection for this event.
           </p>
-          <Button onClick={() => navigate(`/customer/events/${eventId}`)} className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
+          <Button
+            onClick={() => navigate(`/customer/events/${eventId}`)}
+            className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Event
           </Button>
@@ -289,7 +391,9 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
         </button>
 
         <div className="bg-gradient-to-r from-[#FF5B04] to-[#FF5B04]/80 rounded-xl p-6 text-white">
-          <h1 className="text-3xl font-bold mb-2">Select Vendors for Your Event</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Select Vendors for Your Event
+          </h1>
           <p className="text-white/90">
             Vendors shown are based on your event type and selected services
           </p>
@@ -301,9 +405,14 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
         <div className="flex items-start gap-3">
           <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-blue-900 mb-1">Pre-filtered for: {event.name}</p>
+            <p className="font-semibold text-blue-900 mb-1">
+              Pre-filtered for: {event.name}
+            </p>
             <p className="text-sm text-blue-800">
-              Showing vendors available for <strong>{event.category}</strong> events on <strong>{new Date(event.date).toLocaleDateString()}</strong> in <strong>{event.location}</strong>
+              Showing vendors available for <strong>{event.category}</strong>{" "}
+              events on{" "}
+              <strong>{new Date(event.date).toLocaleDateString()}</strong> in{" "}
+              <strong>{event.location}</strong>
             </p>
           </div>
         </div>
@@ -343,22 +452,27 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
           <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Service Filter */}
             <div>
-              <label className="block text-sm font-medium text-[#16232A] mb-2">Service</label>
+              <label className="block text-sm font-medium text-[#16232A] mb-2">
+                Service
+              </label>
               <select
                 value={selectedServiceFilter}
                 onChange={(e) => setSelectedServiceFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04]"
               >
                 <option value="all">All Services</option>
-                {event.services.map(service => (
-                  <option key={service} value={service}>{service}</option>
-                ))}
+                <option value="photography">Photography</option>
+                <option value="catering">Catering</option>
+                <option value="dj">DJ</option>
+                <option value="decorator">Decoration</option>
               </select>
             </div>
 
             {/* Price Range Filter */}
             <div>
-              <label className="block text-sm font-medium text-[#16232A] mb-2">Price Range</label>
+              <label className="block text-sm font-medium text-[#16232A] mb-2">
+                Price Range
+              </label>
               <select
                 value={priceRangeFilter}
                 onChange={(e) => setPriceRangeFilter(e.target.value)}
@@ -373,7 +487,9 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
 
             {/* Rating Filter */}
             <div>
-              <label className="block text-sm font-medium text-[#16232A] mb-2">Min Rating</label>
+              <label className="block text-sm font-medium text-[#16232A] mb-2">
+                Min Rating
+              </label>
               <select
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(Number(e.target.value))}
@@ -388,7 +504,9 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
 
             {/* Location Filter */}
             <div>
-              <label className="block text-sm font-medium text-[#16232A] mb-2">Location</label>
+              <label className="block text-sm font-medium text-[#16232A] mb-2">
+                Location
+              </label>
               <select
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value)}
@@ -404,7 +522,9 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
 
             {/* Experience Filter */}
             <div>
-              <label className="block text-sm font-medium text-[#16232A] mb-2">Experience</label>
+              <label className="block text-sm font-medium text-[#16232A] mb-2">
+                Experience
+              </label>
               <select
                 value={experienceFilter}
                 onChange={(e) => setExperienceFilter(e.target.value)}
@@ -423,8 +543,9 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-[#16232A]/70">
-          Showing <strong>{filteredVendors.length}</strong> vendor{filteredVendors.length !== 1 ? 's' : ''}
-          {hasActiveFilters && ' (filtered)'}
+          Showing <strong>{filteredVendors.length}</strong> vendor
+          {filteredVendors.length !== 1 ? "s" : ""}
+          {hasActiveFilters && " (filtered)"}
         </p>
       </div>
 
@@ -432,7 +553,10 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
       {isLoading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
+            <div
+              key={i}
+              className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse"
+            >
               <div className="h-48 bg-gray-200" />
               <div className="p-4 space-y-3">
                 <div className="h-6 bg-gray-200 rounded w-3/4" />
@@ -471,17 +595,25 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
 
                 {/* Vendor Info */}
                 <div className="p-4">
-                  <h3 className="text-lg font-bold text-[#16232A] mb-1">{vendor.name}</h3>
-                  <p className="text-sm text-[#16232A]/60 mb-3">{vendor.category}</p>
+                  <h3 className="text-lg font-bold text-[#16232A] mb-1">
+                    {vendor.name}
+                  </h3>
+                  <p className="text-sm text-[#16232A]/60 mb-3">
+                    {vendor.category}
+                  </p>
 
                   <div className="space-y-2 mb-4">
                     {/* Rating */}
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        <span className="font-semibold text-[#16232A]">{vendor.rating}</span>
+                        <span className="font-semibold text-[#16232A]">
+                          {vendor.rating}
+                        </span>
                       </div>
-                      <span className="text-sm text-[#16232A]/60">({vendor.reviews} reviews)</span>
+                      <span className="text-sm text-[#16232A]/60">
+                        ({vendor.reviews} reviews)
+                      </span>
                     </div>
 
                     {/* Location */}
@@ -493,8 +625,12 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
                     {/* Price */}
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-[#16232A]/60">Starting at</span>
-                      <span className="font-bold text-[#FF5B04]">${vendor.startingPrice.toLocaleString()}</span>
+                      <span className="text-sm text-[#16232A]/60">
+                        Starting at
+                      </span>
+                      <span className="font-bold text-[#FF5B04]">
+                        ${vendor.startingPrice.toLocaleString()}
+                      </span>
                     </div>
 
                     {/* Experience */}
@@ -509,7 +645,11 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
                     <Button
                       variant="outline"
                       className="flex-1"
-                      onClick={() => navigate(`/customer/events/${eventId}/vendor-profile/${vendor.id}`)}
+                      onClick={() =>
+                        navigate(
+                          `/customer/events/${eventId}/vendor-profile/${vendor.id}`,
+                        )
+                      }
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View Profile
@@ -531,14 +671,19 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
         // Empty State
         <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
           <ShoppingBag className="h-20 w-20 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-[#16232A] mb-2">No vendors found</h3>
+          <h3 className="text-2xl font-bold text-[#16232A] mb-2">
+            No vendors found
+          </h3>
           <p className="text-lg text-[#16232A]/60 mb-6">
             {hasActiveFilters
-              ? 'No vendors match your current filters. Try adjusting your criteria.'
-              : 'No vendors are available for your event requirements.'}
+              ? "No vendors match your current filters. Try adjusting your criteria."
+              : "No vendors are available for your event requirements."}
           </p>
           {hasActiveFilters && (
-            <Button onClick={resetFilters} className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
+            <Button
+              onClick={resetFilters}
+              className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
+            >
               <X className="h-4 w-4 mr-2" />
               Reset Filters
             </Button>
@@ -555,7 +700,9 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
             className="bg-white rounded-2xl p-6 max-w-md w-full"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-2xl font-bold text-[#16232A]">Add Vendor to Event</h3>
+              <h3 className="text-2xl font-bold text-[#16232A]">
+                Add Vendor to Event
+              </h3>
               <button
                 onClick={() => {
                   setShowConfirmModal(false);
@@ -572,7 +719,8 @@ export const EventVendorSelectionEnhanced: React.FC = () => {
                 <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-blue-900 mb-2">
-                    {selectedVendor.name} will be invited to place a bid for your event
+                    {selectedVendor.name} will be invited to place a bid for
+                    your event
                   </p>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• The vendor will submit a customized proposal</li>

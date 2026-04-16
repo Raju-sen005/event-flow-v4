@@ -46,7 +46,9 @@ type NegotiationOffer = {
 };
 
 export const EventBidDetail: React.FC = () => {
-  const { eventId, bidId } = useParams();
+  const { id: eventId, bidId } = useParams();
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const action = searchParams.get("action");
@@ -68,65 +70,115 @@ export const EventBidDetail: React.FC = () => {
   // Mock negotiation history
   const [negotiationHistory, setNegotiationHistory] = useState<
     NegotiationOffer[]
-  >([
-    {
-      id: "1",
-      from: "vendor",
-      price: 5000,
-      notes: "Initial offer - Premium package with all inclusions",
-      createdAt: "2026-01-20T10:30:00",
-      status: "countered",
-    },
-    {
-      id: "2",
-      from: "customer",
-      price: 4000,
-      notes: "Can we work within our budget? Would love to work with you!",
-      createdAt: "2026-01-20T14:15:00",
-      status: "countered",
-    },
-    {
-      id: "3",
-      from: "vendor",
-      price: 4500,
-      notes:
-        "I can offer $4,500 which includes all premium features. This is my best offer.",
-      createdAt: "2026-01-21T09:20:00",
-      status: "pending",
-    },
-  ]);
+  >([]);
 
-  const activeOffer = negotiationHistory[negotiationHistory.length - 1];
+  useEffect(() => {
+    fetchNegotiation();
+  }, [bidId]);
+
+  const fetchNegotiation = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/negotiation/${bidId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const offers = res.data?.data?.offers || [];
+      console.log("NEGOTIATION API FULL:", res.data);
+
+      // 🔥 IMPORTANT MAPPING
+      const mapped = offers.map((o: any) => ({
+        id: o.id,
+        from: o.proposed_by, // ✅ backend → frontend fix
+        price: o.price,
+        notes: o.notes,
+        createdAt: o.createdAt,
+        status: o.status || "pending",
+      }));
+
+      setNegotiationHistory(mapped);
+    } catch (err) {
+      console.error("Error fetching negotiation", err);
+    }
+  };
+
+  const activeOffer =
+    negotiationHistory?.length > 0
+      ? negotiationHistory[negotiationHistory.length - 1]
+      : null;
+
+  console.log("activeOffer:", activeOffer);
+  console.log("negotiationHistory:", negotiationHistory);
+  const showAccept =
+    activeOffer?.from === "vendor" && activeOffer?.status === "pending";
+
+  const showNegotiation =
+    bid?.status !== "finalized" && bid?.status !== "closed";
+
+  const showFinalize = bid?.status !== "closed" && bid?.status !== "declined";
+
   const canCustomerRespond =
-    activeOffer.from === "vendor" && activeOffer.status === "pending";
+    !activeOffer || // ✅ first time allow
+    (activeOffer?.from === "vendor" && activeOffer?.status === "pending");
 
   // Handle submit negotiation
-  const handleSubmitNegotiation = () => {
+  const handleSubmitNegotiation = async () => {
     if (!proposedPrice || !negotiationNotes) return;
 
-    const newOffer: NegotiationOffer = {
-      id: String(negotiationHistory.length + 1),
-      from: "customer",
-      price: Number(proposedPrice),
-      notes: negotiationNotes,
-      createdAt: new Date().toISOString(),
-      status: "pending",
-    };
+    try {
+      const token = localStorage.getItem("token");
 
-    setNegotiationHistory([...negotiationHistory, newOffer]);
-    setProposedPrice("");
-    setNegotiationNotes("");
-    setShowNegotiationPanel(false);
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/negotiation/counter`,
+        {
+          bidId,
+          price: Number(proposedPrice),
+          timeline: "custom",
+          notes: negotiationNotes,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      fetchNegotiation(); // 🔥 refresh
+
+      setProposedPrice("");
+      setNegotiationNotes("");
+      setShowNegotiationPanel(false);
+    } catch (err) {
+      console.error("Error sending counter offer", err);
+    }
   };
 
   // Handle accept vendor offer
-  const handleAcceptOffer = () => {
-    // In production, send to backend
-    console.log("Accepting vendor offer");
-    setShowAcceptOfferModal(false);
-    setShowFinalizeModal(true);
+  const handleAcceptOffer = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/negotiation/accept/${activeOffer?.id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      setShowAcceptOfferModal(false);
+      fetchNegotiation(); // 🔥 refresh
+      setShowFinalizeModal(true);
+    } catch (err) {
+      console.error("Error accepting offer", err);
+    }
   };
 
+  
   useEffect(() => {
     fetchBid();
   }, [bidId]);
@@ -135,11 +187,14 @@ export const EventBidDetail: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bids/${bidId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/bids/${bidId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
       setBid(res.data.data);
     } catch (err) {
       console.error("Error fetching bid", err);
@@ -149,15 +204,28 @@ export const EventBidDetail: React.FC = () => {
   };
 
   // Handle finalize vendor
-  const handleFinalizeVendor = () => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+  const handleFinalizeVendor = async () => {
+    try {
+      setIsLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/negotiation/finalize`,
+        { bidId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
       setShowFinalizeModal(false);
-      // In production, navigate after success
+
       navigate(`/customer/events/${eventId}/bids?finalized=${bidId}`);
-    }, 1500);
+    } catch (err) {
+      console.error("Finalize error", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Get status info
@@ -169,7 +237,7 @@ export const EventBidDetail: React.FC = () => {
         title: "Loading...",
         message: "",
       };
-    switch (bid.status) {
+    switch (bid?.status) {
       case "new":
         return {
           color: "blue",
@@ -244,7 +312,7 @@ export const EventBidDetail: React.FC = () => {
   };
 
   // const canTakeAction =
-  //   bid.status === "new" || bid.status === "under-negotiation";
+  //   bid?.status === "new" || bid?.status === "under-negotiation";
 
   if (loading) {
     return <div>Loading...</div>;
@@ -252,8 +320,8 @@ export const EventBidDetail: React.FC = () => {
   if (!bid) {
     return <div>No bid found</div>;
   }
-  const canTakeAction =
-    bid?.status === "new" || bid?.status === "under-negotiation";
+  // const canTakeAction =
+  //   bid?.status === "new" || bid?.status === "under-negotiation";
 
   const statusInfo = getStatusInfo();
 
@@ -289,7 +357,7 @@ export const EventBidDetail: React.FC = () => {
             <div className="flex items-start gap-4 mb-6">
               <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                 <img
-                  src={`${import.meta.env.VITE_API_BASE_URL}${bid.vendor?.VendorProfile?.profileImage}`}
+                  src={`${BASE_URL}${bid.vendor?.VendorProfile?.profileImage}`}
                   alt={bid.vendor?.name}
                   className="w-full h-full object-cover"
                 />
@@ -298,7 +366,9 @@ export const EventBidDetail: React.FC = () => {
                 <h1 className="text-2xl font-bold text-[#16232A] mb-1">
                   {bid.vendor?.name}
                 </h1>
-                <p className="text-[#FF5B04] font-medium mb-2">{bid.vendor?.VendorProfile?.category}</p>
+                <p className="text-[#FF5B04] font-medium mb-2">
+                  {bid.vendor?.VendorProfile?.category}
+                </p>
                 <div className="flex items-center gap-4 text-sm text-[#16232A]/70">
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -342,7 +412,7 @@ export const EventBidDetail: React.FC = () => {
                   </p>
 
                   {/* Post-finalization actions */}
-                  {bid.status === "finalized" && (
+                  {bid?.status === "finalized" && (
                     <div className="flex gap-2 mt-4">
                       <Button
                         size="sm"
@@ -365,7 +435,7 @@ export const EventBidDetail: React.FC = () => {
                     </div>
                   )}
 
-                  {bid.status === "declined" && (
+                  {bid?.status === "declined" && (
                     <div className="flex gap-2 mt-4">
                       <Button
                         size="sm"
@@ -381,7 +451,7 @@ export const EventBidDetail: React.FC = () => {
                     </div>
                   )}
 
-                  {bid.status === "closed" && (
+                  {bid?.status === "closed" && (
                     <div className="flex gap-2 mt-4">
                       <Button
                         size="sm"
@@ -403,7 +473,7 @@ export const EventBidDetail: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-[#16232A]">Bid Details</h2>
               <span className="text-3xl font-bold text-[#FF5B04]">
-                ${(bid.price || 0).toLocaleString()}
+                ${(bid.price || 0)?.toLocaleString()}
               </span>
             </div>
 
@@ -452,8 +522,8 @@ export const EventBidDetail: React.FC = () => {
                 </p>
                 <p className="text-sm text-green-800 mt-1">
                   Save $
-                  {(bid.originalPrice - bid.offeredPrice).toLocaleString()} from
-                  the original price
+                  {(bid.originalPrice - bid.offeredPrice)?.toLocaleString()}{" "}
+                  from the original price
                 </p>
               </div>
             )}
@@ -491,89 +561,54 @@ export const EventBidDetail: React.FC = () => {
           <div className="bg-white rounded-xl p-6 border border-gray-200 sticky top-6">
             <h3 className="font-bold text-[#16232A] mb-4">Actions</h3>
             <div className="space-y-3">
-              {canTakeAction ? (
-                <>
-                  {canCustomerRespond && (
-                    <Button
-                      onClick={() => setShowAcceptOfferModal(true)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Accept Offer
-                    </Button>
-                  )}
-
-                  <Button
-                    onClick={() =>
-                      setShowNegotiationPanel(!showNegotiationPanel)
-                    }
-                    className="w-full bg-[#075056] hover:bg-[#075056]/90 text-white"
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    {showNegotiationPanel ? "Hide" : "Start"} Negotiation
-                  </Button>
-
-                  {bid.eligibleForFinalization && (
-                    <Button
-                      onClick={() => setShowFinalizeModal(true)}
-                      className="w-full bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Finalize Vendor
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <>
-                  {bid.status === "finalization-requested" && (
-                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 text-center">
-                      <Loader2 className="h-8 w-8 text-purple-600 mx-auto mb-2 animate-spin" />
-                      <p className="text-sm font-medium text-purple-900">
-                        Pending Vendor Acceptance
-                      </p>
-                      <p className="text-xs text-purple-700 mt-1">
-                        Usually takes 24-48 hours
-                      </p>
-                    </div>
-                  )}
-
-                  {bid.status === "finalized" && (
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-center">
-                      <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-green-900">
-                        Vendor Confirmed
-                      </p>
-                    </div>
-                  )}
-
-                  {(bid.status === "declined" || bid.status === "closed") && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <Button
-                            disabled
-                            className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
-                          >
-                            Actions Not Available
-                          </Button>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-[#16232A] text-white">
-                        {bid.status === "declined"
-                          ? "Vendor declined finalization"
-                          : "Bid is closed"}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </>
+              {/* ✅ Accept Offer */}
+              {showAccept && (
+                <Button
+                  onClick={() => setShowAcceptOfferModal(true)}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Accept Offer
+                </Button>
               )}
 
+              {/* ✅ Negotiation */}
+              {showNegotiation && (
+                <Button
+                  onClick={() => setShowNegotiationPanel(!showNegotiationPanel)}
+                  className="w-full bg-[#075056] hover:bg-[#075056]/90 text-white"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  {showNegotiationPanel ? "Hide" : "Start"} Negotiation
+                </Button>
+              )}
+
+              {/* ✅ Finalize */}
+              {showFinalize && (
+                <Button
+                  onClick={() => setShowFinalizeModal(true)}
+                  className="w-full bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Finalize Vendor
+                </Button>
+              )}
+
+              {/* ❌ Closed / Declined State */}
+              {(bid?.status === "closed" || bid?.status === "declined") && (
+                <Button
+                  disabled
+                  className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
+                >
+                  Actions Not Available
+                </Button>
+              )}
+
+              {/* ✅ Always visible */}
               <Button
                 variant="outline"
                 onClick={() =>
-                  navigate(
-                    `/customer/events/${eventId}/vendors/${bid.vendorId}`,
-                  )
+                  navigate(`/customer/vendors/${bid.vendor?.VendorProfile?.id}`)
                 }
                 className="w-full"
               >
@@ -584,7 +619,7 @@ export const EventBidDetail: React.FC = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                disabled={bid.status === "closed"}
+                disabled={bid?.status === "closed"}
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Send Message
@@ -676,13 +711,13 @@ export const EventBidDetail: React.FC = () => {
                           {offer.from === "vendor" ? bid.vendorName : "You"}
                         </p>
                         <p className="text-xs text-[#16232A]/60">
-                          {new Date(offer.createdAt).toLocaleString()}
+                          {new Date(offer.createdAt)?.toLocaleString()}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-xl font-bold text-[#16232A]">
-                        ${offer.price.toLocaleString()}
+                        ${offer.price?.toLocaleString()}
                       </p>
                       {offer.status === "pending" &&
                         index === negotiationHistory.length - 1 && (
@@ -774,8 +809,13 @@ export const EventBidDetail: React.FC = () => {
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
               <p className="text-sm text-green-900">
                 You're about to accept the vendor's offer of{" "}
-                <strong>${activeOffer.price.toLocaleString()}</strong>. This
-                will move to finalization.
+                <strong>
+                  $
+                  {activeOffer?.price
+                    ? `₹${activeOffer.price.toLocaleString()}`
+                    : "No active offer"}
+                </strong>
+                . This will move to finalization.
               </p>
             </div>
 
@@ -833,7 +873,7 @@ export const EventBidDetail: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-[#16232A]/60">Final Price:</span>
                   <span className="text-xl font-bold text-[#FF5B04]">
-                    ${bid.offeredPrice.toLocaleString()}
+                    ${bid.price?.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">

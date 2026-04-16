@@ -4,10 +4,11 @@ import { motion } from "motion/react";
 import { Star, MapPin, ArrowRight, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { LoginModal } from "../landing/LoginModal"; // path adjust karo
+import { useAuth } from "../context/AuthContext";
 
 export const VendorsSection: React.FC = () => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
-  
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   // const [showAll, setShowAll] = useState(false);
@@ -93,9 +94,15 @@ export const VendorsSection: React.FC = () => {
               <button
                 onClick={() => {
                   if (!isLoggedIn) {
-                    setLoginOpen(true); // 🔥 open login modal
+                    setLoginOpen(true);
+                    return;
+                  }
+
+                  // 🔥 role based redirect
+                  if (user?.role === "customer") {
+                    navigate("/customer/global-vendors");
                   } else {
-                    navigate("/customer/global-vendors"); // 🔥 navigate
+                    navigate("/vendor/dashboard"); // vendor + planner dono
                   }
                 }}
                 className="flex items-center gap-1.5 text-sm font-semibold text-[#075056] hover:text-[#075056]/80 transition-colors"
@@ -194,9 +201,14 @@ export const VendorsSection: React.FC = () => {
                     <button
                       onClick={() => {
                         if (!isLoggedIn) {
-                          setLoginOpen(true); // 🔥 modal open
-                        } else {
+                          setLoginOpen(true);
+                          return;
+                        }
+
+                        if (user?.role === "customer") {
                           navigate(`/customer/vendors/${vendor.id}`);
+                        } else {
+                          navigate("/vendor/dashboard");
                         }
                       }}
                       className="flex-1 py-2 text-center text-sm font-medium border-2 border-[#16232A] text-[#16232A] rounded-lg hover:bg-[#16232A] hover:text-white transition-all"
@@ -206,9 +218,14 @@ export const VendorsSection: React.FC = () => {
                     <button
                       onClick={() => {
                         if (!isLoggedIn) {
-                          setLoginOpen(true); // 🔥 open login modal
+                          setLoginOpen(true);
+                          return;
+                        }
+
+                        if (user?.role === "customer") {
+                          navigate("/customer/events");
                         } else {
-                          navigate("/customer/events"); // 🔥 go to events
+                          navigate("/vendor/dashboard");
                         }
                       }}
                       className="flex-1 py-2 text-center text-sm font-semibold bg-[#FF5B04] text-white rounded-lg hover:bg-[#FF5B04]/90 transition-all"

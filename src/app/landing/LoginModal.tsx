@@ -681,7 +681,7 @@ const RegisterView: React.FC<{ onBack: () => void; onClose: () => void }> = ({
 
   const onSubmit = async (data: RegisterForm) => {
     try {
-      const res = await axios.post(`${BASE_URL}/auth/register-v2`, {
+      const res = await axios.post(`${BASE_URL}/auth/register`, {
         name: data.fullName,
         email: data.email,
         password: data.password,
@@ -689,14 +689,15 @@ const RegisterView: React.FC<{ onBack: () => void; onClose: () => void }> = ({
         role: "customer",
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      // localStorage.setItem("token", res.data.token);
+      // localStorage.setItem("user", JSON.stringify(res.data.user));
 
       setSuccess(true);
 
       setTimeout(() => {
-        onClose();
-        nav("/customer/dashboard");
+        // onClose();
+        // nav("/customer/dashboard");
+        onBack();
       }, 1500);
     } catch (err: any) {
       alert(err?.response?.data?.message || "Registration failed");
@@ -1000,13 +1001,14 @@ const BusinessRegisterView: React.FC<{
         category: data.category,
       });
 
-      localStorage.setItem("token", res.data.token);
+      // localStorage.setItem("token", res.data.token);
 
       setSuccess(true);
 
       setTimeout(() => {
-        onClose();
-        nav("/vendor/dashboard");
+        // onClose();
+        // nav("/vendor/dashboard");
+        onBack();
       }, 1500);
     } catch (err: any) {
       alert(err?.response?.data?.message || "Business register failed");

@@ -199,12 +199,27 @@ interface AuthContextType {
   ) => Promise<void>;
 
   logout: () => void;
+  updateUser: (newUserData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  const updateUser = (newUserData: any) => {
+    setUser((prev: any) => {
+      const updated = {
+        ...prev,
+        ...newUserData,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const [isLoading, setIsLoading] = useState(true);
 
   // 🔁 Auto login on refresh
@@ -243,7 +258,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // 🔑 LOGIN
   const login = async (email: string, password: string) => {
-    const { data } = await api.post("/auth/login-v2", { email, password });
+    const { data } = await api.post("/auth/login", { email, password });
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user)); // ⭐ ADD THIS
 
@@ -309,6 +324,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signupCustomer,
         signupBusiness,
         logout,
+        updateUser,
       }}
     >
       {children}
