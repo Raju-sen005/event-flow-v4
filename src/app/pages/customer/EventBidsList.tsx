@@ -27,6 +27,7 @@ import {
   XCircle,
   Lock,
 } from "lucide-react";
+import PaymentSlabs from "./PaymentSlab";
 
 type BidStatus =
   | "new"
@@ -512,331 +513,332 @@ export const EventBidsList: React.FC = () => {
             const serviceHasFinalized = isServiceFinalized(service);
 
             return (
-              <div
-                key={service}
-                className="bg-white rounded-xl p-6 border border-gray-200"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-2xl font-bold text-[#16232A]">
-                        {service}
-                      </h2>
-                      {serviceHasFinalized && (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full flex items-center gap-1">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Vendor Finalized
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-[#16232A]/60 mt-1">
-                      {serviceBids.length} bid
-                      {serviceBids.length !== 1 ? "s" : ""} received
-                    </p>
-                  </div>
+              // <div
+              //   key={service}
+              //   className="bg-white rounded-xl p-6 border border-gray-200"
+              // >
+              //   <div className="flex items-center justify-between mb-6">
+              //     <div>
+              //       <div className="flex items-center gap-3">
+              //         <h2 className="text-2xl font-bold text-[#16232A]">
+              //           {service}
+              //         </h2>
+              //         {serviceHasFinalized && (
+              //           <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full flex items-center gap-1">
+              //             <CheckCircle2 className="h-4 w-4" />
+              //             Vendor Finalized
+              //           </span>
+              //         )}
+              //       </div>
+              //       <p className="text-sm text-[#16232A]/60 mt-1">
+              //         {serviceBids.length} bid
+              //         {serviceBids.length !== 1 ? "s" : ""} received
+              //       </p>
+              //     </div>
 
-                  {/* Quick Compare Link */}
-                  {serviceBids.length > 1 && (
-                    <Link
-                      to={`/customer/events/${eventId}/bids/compare?service=${service}`}
-                    >
-                      <Button variant="outline" size="sm">
-                        <TrendingUp className="h-4 w-4 mr-2" />
-                        Compare Bids
-                      </Button>
-                    </Link>
-                  )}
-                </div>
+              //     {/* Quick Compare Link */}
+              //     {serviceBids.length > 1 && (
+              //       <Link
+              //         to={`/customer/events/${eventId}/bids/compare?service=${service}`}
+              //       >
+              //         <Button variant="outline" size="sm">
+              //           <TrendingUp className="h-4 w-4 mr-2" />
+              //           Compare Bids
+              //         </Button>
+              //       </Link>
+              //     )}
+              //   </div>
 
-                {/* Bids for this service */}
-                <div className="space-y-4">
-                  {serviceBids.map((bid, index) => {
-                    const canNegotiate =
-                      bid.status === "new" ||
-                      bid.status === "under-negotiation";
-                    const canFinalize =
-                      (bid.status === "new" ||
-                        bid.status === "under-negotiation") &&
-                      !serviceHasFinalized;
-                    const negotiateTooltip = !canNegotiate
-                      ? getDisabledTooltip(bid, "negotiate")
-                      : "";
-                    const finalizeTooltip = !canFinalize
-                      ? getDisabledTooltip(bid, "finalize")
-                      : "";
+              //   {/* Bids for this service */}
+              //   <div className="space-y-4">
+              //     {serviceBids.map((bid, index) => {
+              //       const canNegotiate =
+              //         bid.status === "new" ||
+              //         bid.status === "under-negotiation";
+              //       const canFinalize =
+              //         (bid.status === "new" ||
+              //           bid.status === "under-negotiation") &&
+              //         !serviceHasFinalized;
+              //       const negotiateTooltip = !canNegotiate
+              //         ? getDisabledTooltip(bid, "negotiate")
+              //         : "";
+              //       const finalizeTooltip = !canFinalize
+              //         ? getDisabledTooltip(bid, "finalize")
+              //         : "";
 
-                    return (
-                      <motion.div
-                        key={bid.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all"
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          {/* Vendor Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-bold text-[#16232A]">
-                                {bid.vendorName}
-                              </h3>
-                              <div className="flex items-center gap-1">
-                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                <span className="text-sm font-semibold text-[#16232A]">
-                                  {bid.vendorRating}
-                                </span>
-                              </div>
-                              <span
-                                className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(bid.status)}`}
-                              >
-                                {getStatusText(bid.status)}
-                              </span>
-                              {bid.negotiationCount &&
-                                bid.negotiationCount > 0 && (
-                                  <span className="text-xs text-[#16232A]/60">
-                                    ({bid.negotiationCount} round
-                                    {bid.negotiationCount !== 1 ? "s" : ""})
-                                  </span>
-                                )}
-                            </div>
-                            <p className="text-sm font-medium text-[#FF5B04] mb-1">
-                              {bid.packageName}
-                            </p>
-                            <p className="text-sm text-[#16232A]/60">
-                              {bid.timeline}
-                            </p>
-                          </div>
+              //       return (
+              //         <motion.div
+              //           key={bid.id}
+              //           initial={{ opacity: 0, y: 10 }}
+              //           animate={{ opacity: 1, y: 0 }}
+              //           transition={{ delay: index * 0.1 }}
+              //           className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all"
+              //         >
+              //           <div className="flex items-start justify-between mb-4">
+              //             {/* Vendor Info */}
+              //             <div className="flex-1">
+              //               <div className="flex items-center gap-3 mb-2">
+              //                 <h3 className="text-lg font-bold text-[#16232A]">
+              //                   {bid.vendorName}
+              //                 </h3>
+              //                 <div className="flex items-center gap-1">
+              //                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              //                   <span className="text-sm font-semibold text-[#16232A]">
+              //                     {bid.vendorRating}
+              //                   </span>
+              //                 </div>
+              //                 <span
+              //                   className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(bid.status)}`}
+              //                 >
+              //                   {getStatusText(bid.status)}
+              //                 </span>
+              //                 {bid.negotiationCount &&
+              //                   bid.negotiationCount > 0 && (
+              //                     <span className="text-xs text-[#16232A]/60">
+              //                       ({bid.negotiationCount} round
+              //                       {bid.negotiationCount !== 1 ? "s" : ""})
+              //                     </span>
+              //                   )}
+              //               </div>
+              //               <p className="text-sm font-medium text-[#FF5B04] mb-1">
+              //                 {bid.packageName}
+              //               </p>
+              //               <p className="text-sm text-[#16232A]/60">
+              //                 {bid.timeline}
+              //               </p>
+              //             </div>
 
-                          {/* Price */}
-                          <div className="text-right ml-4">
-                            {bid.originalPrice &&
-                              bid.originalPrice !== bid.offeredPrice && (
-                                <p className="text-sm text-[#16232A]/50 line-through">
-                                  ${bid.originalPrice.toLocaleString()}
-                                </p>
-                              )}
-                            <p className="text-2xl font-bold text-[#16232A]">
-                              ${bid.offeredPrice.toLocaleString()}
-                            </p>
-                            {bid.originalPrice &&
-                              bid.originalPrice !== bid.offeredPrice && (
-                                <p className="text-xs text-green-600 font-medium">
-                                  Save $
-                                  {(
-                                    bid.originalPrice - bid.offeredPrice
-                                  ).toLocaleString()}
-                                </p>
-                              )}
-                          </div>
-                        </div>
+              //             {/* Price */}
+              //             <div className="text-right ml-4">
+              //               {bid.originalPrice &&
+              //                 bid.originalPrice !== bid.offeredPrice && (
+              //                   <p className="text-sm text-[#16232A]/50 line-through">
+              //                     ${bid.originalPrice.toLocaleString()}
+              //                   </p>
+              //                 )}
+              //               <p className="text-2xl font-bold text-[#16232A]">
+              //                 ${bid.offeredPrice.toLocaleString()}
+              //               </p>
+              //               {bid.originalPrice &&
+              //                 bid.originalPrice !== bid.offeredPrice && (
+              //                   <p className="text-xs text-green-600 font-medium">
+              //                     Save $
+              //                     {(
+              //                       bid.originalPrice - bid.offeredPrice
+              //                     ).toLocaleString()}
+              //                   </p>
+              //                 )}
+              //             </div>
+              //           </div>
 
-                        {/* Inclusions Preview */}
-                        <div className="mb-4">
-                          <p className="text-sm font-medium text-[#16232A] mb-2">
-                            Package Includes:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {bid.inclusions.slice(0, 3).map((item, i) => (
-                              <span
-                                key={i}
-                                className="px-3 py-1 bg-[#E4EEF0] text-[#16232A] text-xs rounded-full"
-                              >
-                                {item}
-                              </span>
-                            ))}
-                            {bid.inclusions.length > 3 && (
-                              <span className="px-3 py-1 bg-[#E4EEF0] text-[#16232A] text-xs rounded-full">
-                                +{bid.inclusions.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
+              //           {/* Inclusions Preview */}
+              //           <div className="mb-4">
+              //             <p className="text-sm font-medium text-[#16232A] mb-2">
+              //               Package Includes:
+              //             </p>
+              //             <div className="flex flex-wrap gap-2">
+              //               {bid.inclusions.slice(0, 3).map((item, i) => (
+              //                 <span
+              //                   key={i}
+              //                   className="px-3 py-1 bg-[#E4EEF0] text-[#16232A] text-xs rounded-full"
+              //                 >
+              //                   {item}
+              //                 </span>
+              //               ))}
+              //               {bid.inclusions.length > 3 && (
+              //                 <span className="px-3 py-1 bg-[#E4EEF0] text-[#16232A] text-xs rounded-full">
+              //                   +{bid.inclusions.length - 3} more
+              //                 </span>
+              //               )}
+              //             </div>
+              //           </div>
 
-                        {/* Metadata */}
-                        <div className="flex items-center gap-4 text-xs text-[#16232A]/50 mb-4">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              Submitted{" "}
-                              {new Date(bid.submittedAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>
-                              {new Date(bid.submittedAt).toLocaleTimeString(
-                                [],
-                                { hour: "2-digit", minute: "2-digit" },
-                              )}
-                            </span>
-                          </div>
-                        </div>
+              //           {/* Metadata */}
+              //           <div className="flex items-center gap-4 text-xs text-[#16232A]/50 mb-4">
+              //             <div className="flex items-center gap-1">
+              //               <Calendar className="h-3 w-3" />
+              //               <span>
+              //                 Submitted{" "}
+              //                 {new Date(bid.submittedAt).toLocaleDateString()}
+              //               </span>
+              //             </div>
+              //             <div className="flex items-center gap-1">
+              //               <Clock className="h-3 w-3" />
+              //               <span>
+              //                 {new Date(bid.submittedAt).toLocaleTimeString(
+              //                   [],
+              //                   { hour: "2-digit", minute: "2-digit" },
+              //                 )}
+              //               </span>
+              //             </div>
+              //           </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <Link
-                            to={`/customer/events/${eventId}/bids/${bid.id}`}
-                            className="flex-1"
-                          >
-                            <Button variant="outline" className="w-full">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </Button>
-                          </Link>
+              //           {/* Actions */}
+              //           <div className="flex gap-2">
+              //             <Link
+              //               to={`/customer/events/${eventId}/bids/${bid.id}`}
+              //               className="flex-1"
+              //             >
+              //               <Button variant="outline" className="w-full">
+              //                 <Eye className="h-4 w-4 mr-2" />
+              //                 View Details
+              //               </Button>
+              //             </Link>
 
-                          {bid.status === "new" && canNegotiate && (
-                            <Link
-                              to={`/customer/events/${eventId}/bids/${bid.id}`}
-                              className="flex-1"
-                            >
-                              <Button className="w-full bg-[#075056] hover:bg-[#075056]/90 text-white">
-                                <MessageSquare className="h-4 w-4 mr-2" />
-                                Negotiate
-                              </Button>
-                            </Link>
-                          )}
+              //             {bid.status === "new" && canNegotiate && (
+              //               <Link
+              //                 to={`/customer/events/${eventId}/bids/${bid.id}`}
+              //                 className="flex-1"
+              //               >
+              //                 <Button className="w-full bg-[#075056] hover:bg-[#075056]/90 text-white">
+              //                   <MessageSquare className="h-4 w-4 mr-2" />
+              //                   Negotiate
+              //                 </Button>
+              //               </Link>
+              //             )}
 
-                          {bid.status === "new" &&
-                            !canNegotiate &&
-                            negotiateTooltip && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex-1">
-                                    <Button
-                                      disabled
-                                      className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
-                                    >
-                                      <MessageSquare className="h-4 w-4 mr-2" />
-                                      Negotiate
-                                    </Button>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-[#16232A] text-white">
-                                  {negotiateTooltip}
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+              //             {bid.status === "new" &&
+              //               !canNegotiate &&
+              //               negotiateTooltip && (
+              //                 <Tooltip>
+              //                   <TooltipTrigger asChild>
+              //                     <div className="flex-1">
+              //                       <Button
+              //                         disabled
+              //                         className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
+              //                       >
+              //                         <MessageSquare className="h-4 w-4 mr-2" />
+              //                         Negotiate
+              //                       </Button>
+              //                     </div>
+              //                   </TooltipTrigger>
+              //                   <TooltipContent className="bg-[#16232A] text-white">
+              //                     {negotiateTooltip}
+              //                   </TooltipContent>
+              //                 </Tooltip>
+              //               )}
 
-                          {bid.status === "under-negotiation" &&
-                            canNegotiate && (
-                              <Link
-                                to={`/customer/events/${eventId}/bids/${bid.id}`}
-                                className="flex-1"
-                              >
-                                <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white">
-                                  <MessageSquare className="h-4 w-4 mr-2" />
-                                  Continue Negotiation
-                                </Button>
-                              </Link>
-                            )}
+              //             {bid.status === "under-negotiation" &&
+              //               canNegotiate && (
+              //                 <Link
+              //                   to={`/customer/events/${eventId}/bids/${bid.id}`}
+              //                   className="flex-1"
+              //                 >
+              //                   <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+              //                     <MessageSquare className="h-4 w-4 mr-2" />
+              //                     Continue Negotiation
+              //                   </Button>
+              //                 </Link>
+              //               )}
 
-                          {bid.status === "under-negotiation" &&
-                            !canNegotiate &&
-                            negotiateTooltip && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex-1">
-                                    <Button
-                                      disabled
-                                      className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
-                                    >
-                                      <MessageSquare className="h-4 w-4 mr-2" />
-                                      Continue Negotiation
-                                    </Button>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-[#16232A] text-white">
-                                  {negotiateTooltip}
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+              //             {bid.status === "under-negotiation" &&
+              //               !canNegotiate &&
+              //               negotiateTooltip && (
+              //                 <Tooltip>
+              //                   <TooltipTrigger asChild>
+              //                     <div className="flex-1">
+              //                       <Button
+              //                         disabled
+              //                         className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
+              //                       >
+              //                         <MessageSquare className="h-4 w-4 mr-2" />
+              //                         Continue Negotiation
+              //                       </Button>
+              //                     </div>
+              //                   </TooltipTrigger>
+              //                   <TooltipContent className="bg-[#16232A] text-white">
+              //                     {negotiateTooltip}
+              //                   </TooltipContent>
+              //                 </Tooltip>
+              //               )}
 
-                          {canFinalize && (
-                            <Link
-                              to={`/customer/events/${eventId}/bids/${bid.id}?action=finalize`}
-                              className="flex-1"
-                            >
-                              <Button className="w-full bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                Finalize Vendor
-                              </Button>
-                            </Link>
-                          )}
+              //             {canFinalize && (
+              //               <Link
+              //                 to={`/customer/events/${eventId}/bids/${bid.id}?action=finalize`}
+              //                 className="flex-1"
+              //               >
+              //                 <Button className="w-full bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
+              //                   <CheckCircle2 className="h-4 w-4 mr-2" />
+              //                   Finalize Vendor
+              //                 </Button>
+              //               </Link>
+              //             )}
 
-                          {!canFinalize && finalizeTooltip && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex-1">
-                                  <Button
-                                    disabled
-                                    className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  >
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Finalize Vendor
-                                  </Button>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-[#16232A] text-white">
-                                {finalizeTooltip}
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
+              //             {!canFinalize && finalizeTooltip && (
+              //               <Tooltip>
+              //                 <TooltipTrigger asChild>
+              //                   <div className="flex-1">
+              //                     <Button
+              //                       disabled
+              //                       className="w-full bg-gray-100 text-gray-400 cursor-not-allowed"
+              //                     >
+              //                       <CheckCircle2 className="h-4 w-4 mr-2" />
+              //                       Finalize Vendor
+              //                     </Button>
+              //                   </div>
+              //                 </TooltipTrigger>
+              //                 <TooltipContent className="bg-[#16232A] text-white">
+              //                   {finalizeTooltip}
+              //                 </TooltipContent>
+              //               </Tooltip>
+              //             )}
 
-                          {bid.status === "finalized" && (
-                            <div className="flex-1">
-                              <Button
-                                disabled
-                                className="w-full bg-green-100 text-green-700 cursor-not-allowed"
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                Finalized
-                              </Button>
-                            </div>
-                          )}
+              //             {bid.status === "finalized" && (
+              //               <div className="flex-1">
+              //                 <Button
+              //                   disabled
+              //                   className="w-full bg-green-100 text-green-700 cursor-not-allowed"
+              //                 >
+              //                   <CheckCircle2 className="h-4 w-4 mr-2" />
+              //                   Finalized
+              //                 </Button>
+              //               </div>
+              //             )}
 
-                          {bid.status === "declined" && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex-1">
-                                  <Button
-                                    disabled
-                                    className="w-full bg-red-100 text-red-700 cursor-not-allowed"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Declined
-                                  </Button>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-[#16232A] text-white">
-                                Vendor declined finalization request
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
+              //             {bid.status === "declined" && (
+              //               <Tooltip>
+              //                 <TooltipTrigger asChild>
+              //                   <div className="flex-1">
+              //                     <Button
+              //                       disabled
+              //                       className="w-full bg-red-100 text-red-700 cursor-not-allowed"
+              //                     >
+              //                       <XCircle className="h-4 w-4 mr-2" />
+              //                       Declined
+              //                     </Button>
+              //                   </div>
+              //                 </TooltipTrigger>
+              //                 <TooltipContent className="bg-[#16232A] text-white">
+              //                   Vendor declined finalization request
+              //                 </TooltipContent>
+              //               </Tooltip>
+              //             )}
 
-                          {bid.status === "closed" && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex-1">
-                                  <Button
-                                    disabled
-                                    className="w-full bg-gray-100 text-gray-700 cursor-not-allowed"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Closed
-                                  </Button>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-[#16232A] text-white">
-                                Another vendor was finalized for this service
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
+              //             {bid.status === "closed" && (
+              //               <Tooltip>
+              //                 <TooltipTrigger asChild>
+              //                   <div className="flex-1">
+              //                     <Button
+              //                       disabled
+              //                       className="w-full bg-gray-100 text-gray-700 cursor-not-allowed"
+              //                     >
+              //                       <XCircle className="h-4 w-4 mr-2" />
+              //                       Closed
+              //                     </Button>
+              //                   </div>
+              //                 </TooltipTrigger>
+              //                 <TooltipContent className="bg-[#16232A] text-white">
+              //                   Another vendor was finalized for this service
+              //                 </TooltipContent>
+              //               </Tooltip>
+              //             )}
+              //           </div>
+              //         </motion.div>
+              //       );
+              //     })}
+              //   </div>
+              // </div>
+              <PaymentSlabs/>
             );
           })}
         </div>

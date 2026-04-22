@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Button } from '@/app/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Button } from "@/app/components/ui/button";
 import {
   X,
   Calendar,
@@ -8,8 +8,9 @@ import {
   CheckCircle2,
   Search,
   AlertTriangle,
-  Info
-} from 'lucide-react';
+  Info,
+} from "lucide-react";
+import api from "../../lib/api";
 
 // Types
 type Event = {
@@ -19,7 +20,7 @@ type Event = {
   date: string;
   location: string;
   status: string;
-  managementMode: 'self-managed' | 'planner-managed';
+  managementMode: "self-managed" | "planner-managed";
 };
 
 type EventPickerModalProps = {
@@ -28,7 +29,7 @@ type EventPickerModalProps = {
   onSelectEvent: (eventId: string) => void;
   title: string;
   description?: string;
-  filterMode?: 'self-managed' | 'planner-managed' | 'all';
+  filterMode?: "self-managed" | "planner-managed" | "all";
   warningMessage?: string;
   allowMultiple?: boolean;
 };
@@ -39,49 +40,24 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
   onSelectEvent,
   title,
   description,
-  filterMode = 'all',
+  filterMode = "all",
   warningMessage,
-  allowMultiple = false
+  allowMultiple = false,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
 
   // Mock events data
-  const allEvents: Event[] = [
-    {
-      id: '1',
-      name: 'Sarah & John Wedding',
-      category: 'Wedding',
-      date: '2026-06-15',
-      location: 'Grand Hotel Ballroom, New York',
-      status: 'planning',
-      managementMode: 'self-managed'
-    },
-    {
-      id: '2',
-      name: 'Corporate Annual Gala',
-      category: 'Corporate Event',
-      date: '2026-08-20',
-      location: 'Convention Center, Boston',
-      status: 'vendors-finalized',
-      managementMode: 'planner-managed'
-    },
-    {
-      id: '3',
-      name: 'Birthday Celebration',
-      category: 'Birthday',
-      date: '2026-04-10',
-      location: 'Private Villa, Miami',
-      status: 'planning',
-      managementMode: 'self-managed'
-    }
-  ];
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Filter events based on management mode
-  const filteredEvents = allEvents.filter(event => {
-    const matchesMode = filterMode === 'all' || event.managementMode === filterMode;
-    const matchesSearch = event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredEvents = events.filter((event) => {
+    const matchesMode =
+      filterMode === "all" || event.managementMode === filterMode;
+    const matchesSearch =
+      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesMode && matchesSearch;
   });
 
@@ -89,13 +65,27 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
   const handleSelectEvent = (eventId: string) => {
     if (allowMultiple) {
       if (selectedEventIds.includes(eventId)) {
-        setSelectedEventIds(selectedEventIds.filter(id => id !== eventId));
+        setSelectedEventIds(selectedEventIds.filter((id) => id !== eventId));
       } else {
         setSelectedEventIds([...selectedEventIds, eventId]);
       }
     } else {
       onSelectEvent(eventId);
       handleClose();
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+  const fetchEvents = async () => {
+    try {
+      const res = await api.get("/events"); // 🔐 token automatically jayega
+      setEvents(res.data.data);
+    } catch (error) {
+      console.error("Fetch events failed", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -109,7 +99,7 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
 
   // Handle close
   const handleClose = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setSelectedEventIds([]);
     onClose();
   };
@@ -136,9 +126,7 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
         </div>
 
         {/* Description */}
-        {description && (
-          <p className="text-[#16232A]/70 mb-4">{description}</p>
-        )}
+        {description && <p className="text-[#16232A]/70 mb-4">{description}</p>}
 
         {/* Warning Message */}
         {warningMessage && (
@@ -151,14 +139,14 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
         )}
 
         {/* Filter Info */}
-        {filterMode !== 'all' && (
+        {filterMode !== "all" && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-blue-900">
-                {filterMode === 'self-managed' 
-                  ? 'Only showing self-managed events where you can add vendors directly'
-                  : 'Only showing planner-managed events'}
+                {filterMode === "self-managed"
+                  ? "Only showing self-managed events where you can add vendors directly"
+                  : "Only showing planner-managed events"}
               </p>
             </div>
           </div>
@@ -181,30 +169,36 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
           {filteredEvents.length > 0 ? (
             filteredEvents.map((event) => {
               const isSelected = selectedEventIds.includes(event.id);
-              
+
               return (
                 <button
                   key={event.id}
                   onClick={() => handleSelectEvent(event.id)}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                     isSelected
-                      ? 'border-[#FF5B04] bg-orange-50'
-                      : 'border-gray-200 hover:border-[#FF5B04]/50 bg-white hover:bg-gray-50'
+                      ? "border-[#FF5B04] bg-orange-50"
+                      : "border-gray-200 hover:border-[#FF5B04]/50 bg-white hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold text-[#16232A]">{event.name}</h4>
+                        <h4 className="font-semibold text-[#16232A]">
+                          {event.name}
+                        </h4>
                         {isSelected && (
                           <CheckCircle2 className="h-5 w-5 text-[#FF5B04]" />
                         )}
                       </div>
-                      <p className="text-sm text-[#16232A]/70 mb-2">{event.category}</p>
+                      <p className="text-sm text-[#16232A]/70 mb-2">
+                        {event.category}
+                      </p>
                       <div className="flex flex-wrap gap-3 text-sm text-[#16232A]/60">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{new Date(event.date).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(event.date).toLocaleDateString()}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
@@ -212,7 +206,7 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
                         </div>
                       </div>
                     </div>
-                    {event.managementMode === 'planner-managed' && (
+                    {event.managementMode === "planner-managed" && (
                       <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
                         Planner Managed
                       </span>
@@ -224,11 +218,13 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
           ) : (
             <div className="text-center py-12">
               <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-semibold text-[#16232A] mb-2">No events found</h4>
+              <h4 className="text-lg font-semibold text-[#16232A] mb-2">
+                No events found
+              </h4>
               <p className="text-[#16232A]/60">
-                {searchQuery 
-                  ? 'Try adjusting your search'
-                  : 'Create an event to get started'}
+                {searchQuery
+                  ? "Try adjusting your search"
+                  : "Create an event to get started"}
               </p>
             </div>
           )}
@@ -236,11 +232,7 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
 
         {/* Footer */}
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={handleClose} className="flex-1">
             Cancel
           </Button>
           {allowMultiple && (
@@ -249,7 +241,8 @@ export const EventPickerModal: React.FC<EventPickerModalProps> = ({
               disabled={selectedEventIds.length === 0}
               className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white disabled:opacity-50"
             >
-              Select {selectedEventIds.length > 0 && `(${selectedEventIds.length})`}
+              Select{" "}
+              {selectedEventIds.length > 0 && `(${selectedEventIds.length})`}
             </Button>
           )}
         </div>

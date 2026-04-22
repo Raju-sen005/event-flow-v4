@@ -39,12 +39,11 @@ export const VendorsSection: React.FC = () => {
         let url = `${import.meta.env.VITE_API_BASE_URL}/vendors`;
 
         if (activeCategory !== "All") {
-          url += `?category=${encodeURIComponent(
-            activeCategory.toLowerCase(),
-          )}`;
+          url += `?serviceCategory=${encodeURIComponent(activeCategory)}`;
         }
 
         const res = await axios.get(url);
+        console.log("API DATA:", res.data.data);
         setVendors(res.data.data);
       } catch {
         console.log("Vendor load error");
@@ -64,13 +63,9 @@ export const VendorsSection: React.FC = () => {
     // setShowAll(false);
   }, [activeCategory]);
 
-  const filtered =
-    activeCategory === "All"
-      ? vendors
-      : vendors.filter((v) => v.category === activeCategory);
-
-  // const displayed = showAll ? vendors : vendors.slice(0, 6);
-  const displayed = filtered.slice(0, 6);
+  const displayed = vendors.slice(0, 6);
+  console.log("STATE VENDORS:", vendors);
+  console.log("DISPLAYED:", displayed);
   const [loginOpen, setLoginOpen] = useState(false);
   return (
     <>
@@ -140,7 +135,7 @@ export const VendorsSection: React.FC = () => {
 
           {/* Vendors Grid */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayed.map((vendor, i) => (
+            {vendors.map((vendor, i) => (
               <motion.div
                 key={vendor.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -251,7 +246,7 @@ export const VendorsSection: React.FC = () => {
             </div>
           )} */}
 
-          {filtered.length === 0 && (
+          {vendors.length === 0 && (
             <div className="text-center py-16 text-gray-400">
               No vendors found for this category.{" "}
               <Link

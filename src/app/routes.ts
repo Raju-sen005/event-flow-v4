@@ -67,6 +67,7 @@ import { Support } from "./pages/customer/Support";
 import { Payments } from "./pages/customer/Payments";
 import { Invitations } from "./pages/customer/Invitations";
 import { EventPlannerProfile } from "./pages/customer/EventPlannerProfile";
+import  PackageDetail  from "./pages/vendor/PackageDetail";
 
 // Agreements Module
 import { EventAgreements as EventAgreementsNew } from "./pages/customer/agreements/EventAgreements";
@@ -738,6 +739,10 @@ export const router = createBrowserRouter([
         Component: PlannerSettings,
       },
     ],
+  },
+  {
+    path: "/package/:id",
+    Component: PackageDetail,
   },
   {
     path: "*",

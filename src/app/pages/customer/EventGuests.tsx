@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { useParams, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
@@ -41,6 +41,10 @@ type Guest = {
   qrGenerated: boolean;
   checkedIn: boolean;
   addedAt: string;
+  Event?: {
+    id: number;
+    name: string;
+  };
 };
 
 export const EventGuests: React.FC = () => {
@@ -74,7 +78,7 @@ export const EventGuests: React.FC = () => {
     }
   };
 
-  const [guests, setGuests] = useState([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
 
   useEffect(() => {
     fetchGuests();
@@ -186,7 +190,8 @@ export const EventGuests: React.FC = () => {
             Guests for This Event
           </h1>
           <p className="text-[#16232A]/70">
-            Manage guests and track their responses for {event.name}.
+            Manage guests and track their responses for {guests[0]?.Event?.name}
+            .
           </p>
         </div>
       </div>
@@ -649,8 +654,109 @@ const UploadCSVModal: React.FC<{
   eventId: string;
 }> = ({ isOpen, onClose, eventId }) => {
   const [step, setStep] = useState<"preview" | "upload">("preview");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
+  const [parsedData, setParsedData] = useState([]);
 
   if (!isOpen) return null;
+
+  // 🔥 FILE HANDLE
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    setFile(selectedFile);
+
+    const reader = new FileReader();
+
+    reader.onload = (event: any) => {
+      const text = event.target.result;
+
+      const rows = text.split("\n").map((r: string) => r.split(","));
+
+      const headers = rows[0].map(
+        (h: string) => h.replace(/\s+/g, "").toLowerCase(), // 🔥 remove ALL spaces
+      );
+
+      const data = rows
+        .slice(1)
+        .map((row: string[]) => {
+          if (!row || row.length === 0) return null;
+
+          let obj: any = {};
+
+          headers.forEach((h: string, i: number) => {
+            obj[h] = row[i]?.trim() || "";
+          });
+
+          const name = obj.name;
+          if (!name) return null;
+
+          return {
+            name,
+            email: obj.email || null,
+            phone: obj.phone || null,
+            category: obj.category || "general",
+          };
+        })
+        .filter(Boolean);
+
+      console.log("Parsed CSV:", data);
+
+      setParsedData(data);
+    };
+
+    reader.readAsText(selectedFile);
+  };
+
+  // 🔥 UPLOAD
+  const handleUpload = async () => {
+    if (!parsedData.length) {
+      alert("No valid data found");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/guests/bulk`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event_id: eventId,
+          guests: parsedData,
+        }),
+      });
+
+      const data = await res.json();
+
+      console.log("Upload response:", data);
+
+      if (data.success) {
+        let message = `✅ ${data.added} guests added`;
+
+        if (data.duplicates && data.duplicates.length > 0) {
+          const duplicateList = data.duplicates
+            .map((g: any) => `${g.name} (${g.email})`)
+            .join("\n");
+
+          message += `\n\n⚠️ Already exists:\n${duplicateList}`;
+        }
+
+        alert(message);
+
+        onClose();
+        // fetchGuests();
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -721,7 +827,25 @@ Bob Johnson, +1234567892, , colleague`}
               <p className="text-sm text-[#16232A]/60 mb-4">
                 or click to browse
               </p>
-              <Button variant="outline">Choose File</Button>
+              <label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  hidden
+                  onChange={handleFileSelect}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Choose File
+                </Button>
+              </label>
+
+              {file && (
+                <p className="text-sm text-green-600 mt-2">{file.name}</p>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -732,7 +856,11 @@ Bob Johnson, +1234567892, , colleague`}
               >
                 Back
               </Button>
-              <Button className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white">
+              <Button
+                className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
+                onClick={handleUpload}
+                disabled={!parsedData.length}
+              >
                 <Check className="h-4 w-4 mr-2" />
                 Import Guests
               </Button>
@@ -766,6 +894,35 @@ const SendInvitationsModal: React.FC<{
 
   if (!isOpen) return null;
 
+  const handleSendInvitation = async (type: any, message: any) => {
+    try {
+      for (let id of selectedGuestIds) {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/guests/send-invitation`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              guestId: id,
+              type,
+              message,
+            }),
+          },
+        );
+
+        const data = await res.json();
+
+        // whatsapp case
+        if (type === "whatsapp" && data.url) {
+          window.open(data.url, "_blank");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
@@ -1039,11 +1196,7 @@ const SendInvitationsModal: React.FC<{
                 Back
               </Button>
               <Button
-                onClick={() => {
-                  // Send invitations
-                  console.log("Sending invitations");
-                  onClose();
-                }}
+                onClick={() => handleSendInvitation(channel, message)}
                 className="flex-1 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
               >
                 <Send className="h-4 w-4 mr-2" />

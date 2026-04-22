@@ -178,7 +178,6 @@ export const EventBidDetail: React.FC = () => {
     }
   };
 
-  
   useEffect(() => {
     fetchBid();
   }, [bidId]);
@@ -387,9 +386,7 @@ export const EventBidDetail: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  navigate(
-                    `/customer/events/${eventId}/vendors/${bid.vendorId}`,
-                  )
+                  navigate(`/customer/vendors/${bid.vendor?.VendorProfile?.id}`)
                 }
               >
                 <Eye className="h-4 w-4 mr-2" />
@@ -480,14 +477,17 @@ export const EventBidDetail: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-[#16232A]/70">Package</span>
-                <span className="font-semibold text-[#16232A]">
+                <span
+                  className="font-semibold text-[#16232A]  cursor-pointer hover:text-[#FF5B04] hover:underline transition"
+                  onClick={() => window.open(`/package/${bid.id}`, "_blank")}
+                >
                   {bid.package_name}
                 </span>
               </div>
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-[#16232A]/70">Service</span>
                 <span className="font-semibold text-[#16232A]">
-                  {bid.vendor?.VendorProfile?.category}
+                  {bid.inclusions}
                 </span>
               </div>
               <div className="flex justify-between py-3 border-b border-gray-200">
@@ -496,12 +496,12 @@ export const EventBidDetail: React.FC = () => {
                   {bid.timeline}
                 </span>
               </div>
-              <div className="flex justify-between py-3 border-b border-gray-200">
+              {/* <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-[#16232A]/70">Delivery Time</span>
                 <span className="font-semibold text-[#16232A]">
                   {bid.deliveryTime}
                 </span>
-              </div>
+              </div> */}
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-[#16232A]/70">Event Date</span>
                 <span className="font-semibold text-[#16232A]">
@@ -535,7 +535,7 @@ export const EventBidDetail: React.FC = () => {
               Package Includes
             </h3>
             <div className="space-y-2">
-              {bid.inclusions?.map((item, index) => (
+              {bid?.Package?.inclusions?.map((item, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <span className="text-[#16232A]/70">{item}</span>
@@ -588,6 +588,7 @@ export const EventBidDetail: React.FC = () => {
                 <Button
                   onClick={() => setShowFinalizeModal(true)}
                   className="w-full bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
+                  // disabled={status !== "accepted"}
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Finalize Vendor
@@ -858,8 +859,19 @@ export const EventBidDetail: React.FC = () => {
                   <ShoppingBag className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-[#16232A]">{bid.vendorName}</h4>
-                  <p className="text-sm text-[#16232A]/70">{bid.service}</p>
+                  <h4 className="font-bold text-[#16232A]">
+                    {bid.vendor?.name}
+                  </h4>
+                  <p className="text-sm text-[#16232A]/70">
+                    {Array.isArray(
+                      bid.vendor?.VendorProfile?.serviceSubCategory,
+                    )
+                      ? bid.vendor.VendorProfile.serviceSubCategory.join(", ")
+                      : bid.vendor?.VendorProfile?.serviceSubCategory
+                          ?.split(",")
+                          .map((item) => item.trim())
+                          .join(", ")}
+                  </p>
                 </div>
               </div>
 
@@ -867,7 +879,7 @@ export const EventBidDetail: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-[#16232A]/60">Package:</span>
                   <span className="font-medium text-[#16232A]">
-                    {bid.packageName}
+                    {bid.package_name}
                   </span>
                 </div>
                 <div className="flex justify-between">

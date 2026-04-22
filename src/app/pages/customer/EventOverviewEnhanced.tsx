@@ -505,7 +505,7 @@ export const EventOverviewEnhanced: React.FC = () => {
       <div className="grid grid-cols-5 gap-6">
         <QuickActionCard
           title="Vendors"
-          count={`${stats.vendorsFinalized}/${stats.totalVendors}`}
+          count={`${stats.vendorsFinalized}/${vendors.length}`}
           icon={ShoppingBag}
           color="blue"
           onClick={() => setActiveTab("vendors")}
@@ -1419,6 +1419,7 @@ const InvitationsTab: React.FC<{
   onCreateInvitation: () => void;
   onSendInvitations: () => void;
 }> = ({ onCreateInvitation, onSendInvitations }) => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-xl p-6 border border-gray-200 text-center">
       <div className="max-w-2xl mx-auto">
@@ -1433,7 +1434,7 @@ const InvitationsTab: React.FC<{
         </p>
         <div className="flex gap-4 justify-center">
           <Button
-            onClick={onCreateInvitation}
+            onClick={() => navigate("/customer/invitations")}
             className="bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />

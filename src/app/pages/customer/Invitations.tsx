@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { motion } from 'motion/react';
-import { EventPickerModal } from '@/app/components/modals/EventPickerModal';
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import { motion } from "motion/react";
+import { EventPickerModal } from "@/app/components/modals/EventPickerModal";
 import {
   Mail,
   Plus,
@@ -18,12 +18,12 @@ import {
   Filter,
   Search,
   Download,
-  Share2
-} from 'lucide-react';
+  Share2,
+} from "lucide-react";
 
 // Types
-type InvitationStatus = 'draft' | 'sent' | 'delivered' | 'opened';
-type InvitationType = 'digital' | 'video' | 'traditional';
+type InvitationStatus = "draft" | "sent" | "delivered" | "opened";
+type InvitationType = "digital" | "video" | "traditional";
 
 type Invitation = {
   id: string;
@@ -58,7 +58,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   message,
   confirmText,
-  confirmColor = 'bg-[#FF5B04]'
+  confirmColor = "bg-[#FF5B04]",
 }) => {
   if (!isOpen) return null;
 
@@ -93,142 +93,90 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 export const Invitations: React.FC = () => {
   const navigate = useNavigate();
   const [showEventPicker, setShowEventPicker] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<InvitationStatus | 'all'>('all');
-  const [typeFilter, setTypeFilter] = useState<InvitationType | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<InvitationStatus | "all">(
+    "all",
+  );
+  const [typeFilter, setTypeFilter] = useState<InvitationType | "all">("all");
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
-    type: 'delete' | 'send' | null;
+    type: "delete" | "send" | null;
     invitationId: string | null;
   }>({
     isOpen: false,
     type: null,
-    invitationId: null
+    invitationId: null,
   });
 
   // Mock data
-  const invitations: Invitation[] = [
-    {
-      id: '1',
-      eventId: 'evt-001',
-      eventName: 'Meera & Raj Wedding',
-      eventDate: '2026-03-15',
-      title: 'Wedding Ceremony Invitation',
-      type: 'digital',
-      status: 'sent',
-      sentTo: 150,
-      opened: 98,
-      responded: 87,
-      createdAt: '2026-01-10',
-      sentAt: '2026-01-15',
-      thumbnailColor: '#FF5B04'
-    },
-    {
-      id: '2',
-      eventId: 'evt-001',
-      eventName: 'Meera & Raj Wedding',
-      eventDate: '2026-03-15',
-      title: 'Sangeet Night Invitation',
-      type: 'video',
-      status: 'draft',
-      sentTo: 0,
-      opened: 0,
-      responded: 0,
-      createdAt: '2026-01-28',
-      thumbnailColor: '#075056'
-    },
-    {
-      id: '3',
-      eventId: 'evt-002',
-      eventName: 'Priya Birthday Bash',
-      eventDate: '2026-02-20',
-      title: '25th Birthday Celebration',
-      type: 'digital',
-      status: 'sent',
-      sentTo: 75,
-      opened: 62,
-      responded: 54,
-      createdAt: '2026-01-05',
-      sentAt: '2026-01-08',
-      thumbnailColor: '#16232A'
-    },
-    {
-      id: '4',
-      eventId: 'evt-003',
-      eventName: 'Corporate Annual Gala',
-      eventDate: '2026-04-10',
-      title: 'Annual Gala Invitation',
-      type: 'traditional',
-      status: 'delivered',
-      sentTo: 200,
-      opened: 180,
-      responded: 145,
-      createdAt: '2025-12-20',
-      sentAt: '2026-01-05',
-      thumbnailColor: '#FF5B04'
-    },
-  ];
+  const invitations: Invitation[] = [];
 
   // Filter invitations
-  const filteredInvitations = invitations.filter(inv => {
-    const matchesSearch = inv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         inv.eventName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
-    const matchesType = typeFilter === 'all' || inv.type === typeFilter;
+  const filteredInvitations = invitations.filter((inv) => {
+    const matchesSearch =
+      inv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.eventName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
+    const matchesType = typeFilter === "all" || inv.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
 
   // Calculate statistics
   const stats = {
     total: invitations.length,
-    sent: invitations.filter(i => i.status === 'sent' || i.status === 'delivered' || i.status === 'opened').length,
-    draft: invitations.filter(i => i.status === 'draft').length,
+    sent: invitations.filter(
+      (i) =>
+        i.status === "sent" ||
+        i.status === "delivered" ||
+        i.status === "opened",
+    ).length,
+    draft: invitations.filter((i) => i.status === "draft").length,
     totalSentTo: invitations.reduce((sum, i) => sum + i.sentTo, 0),
     totalOpened: invitations.reduce((sum, i) => sum + i.opened, 0),
   };
 
   const getStatusColor = (status: InvitationStatus) => {
     switch (status) {
-      case 'draft':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'sent':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'delivered':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'opened':
-        return 'bg-purple-100 text-purple-700 border-purple-200';
+      case "draft":
+        return "bg-gray-100 text-gray-700 border-gray-200";
+      case "sent":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "delivered":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "opened":
+        return "bg-purple-100 text-purple-700 border-purple-200";
     }
   };
 
   const getStatusIcon = (status: InvitationStatus) => {
     switch (status) {
-      case 'draft':
+      case "draft":
         return <Edit className="h-4 w-4" />;
-      case 'sent':
+      case "sent":
         return <Send className="h-4 w-4" />;
-      case 'delivered':
+      case "delivered":
         return <CheckCircle2 className="h-4 w-4" />;
-      case 'opened':
+      case "opened":
         return <Mail className="h-4 w-4" />;
     }
   };
 
   const getTypeLabel = (type: InvitationType) => {
     switch (type) {
-      case 'digital':
-        return 'Digital Card';
-      case 'video':
-        return 'Video Invitation';
-      case 'traditional':
-        return 'Traditional Card';
+      case "digital":
+        return "Digital Card";
+      case "video":
+        return "Video Invitation";
+      case "traditional":
+        return "Traditional Card";
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -242,29 +190,31 @@ export const Invitations: React.FC = () => {
   };
 
   const handleViewInvitation = (invitationId: string) => {
-    const invitation = invitations.find(i => i.id === invitationId);
+    const invitation = invitations.find((i) => i.id === invitationId);
     if (invitation) {
       navigate(`/customer/invitations/${invitation.eventId}/${invitationId}`);
     }
   };
 
   const handleEditInvitation = (invitationId: string) => {
-    const invitation = invitations.find(i => i.id === invitationId);
+    const invitation = invitations.find((i) => i.id === invitationId);
     if (invitation) {
       navigate(`/customer/invitations/${invitation.eventId}/${invitationId}`);
     }
   };
 
   const handleSendInvitation = (invitationId: string) => {
-    const invitation = invitations.find(i => i.id === invitationId);
-    if (invitation && invitation.status === 'draft') {
+    const invitation = invitations.find((i) => i.id === invitationId);
+    if (invitation && invitation.status === "draft") {
       // Navigate directly to send page for draft invitations
-      navigate(`/customer/invitations/${invitation.eventId}/${invitationId}/send`);
+      navigate(
+        `/customer/invitations/${invitation.eventId}/${invitationId}/send`,
+      );
     } else {
       setConfirmModal({
         isOpen: true,
-        type: 'send',
-        invitationId
+        type: "send",
+        invitationId,
       });
     }
   };
@@ -272,26 +222,26 @@ export const Invitations: React.FC = () => {
   const handleDeleteInvitation = (invitationId: string) => {
     setConfirmModal({
       isOpen: true,
-      type: 'delete',
-      invitationId
+      type: "delete",
+      invitationId,
     });
   };
 
   const handleConfirmAction = () => {
-    if (confirmModal.type === 'delete') {
-      console.log('Deleting invitation:', confirmModal.invitationId);
-    } else if (confirmModal.type === 'send') {
-      console.log('Sending invitation:', confirmModal.invitationId);
+    if (confirmModal.type === "delete") {
+      console.log("Deleting invitation:", confirmModal.invitationId);
+    } else if (confirmModal.type === "send") {
+      console.log("Sending invitation:", confirmModal.invitationId);
     }
     setConfirmModal({ isOpen: false, type: null, invitationId: null });
   };
 
   const handleDuplicateInvitation = (invitationId: string) => {
-    console.log('Duplicating invitation:', invitationId);
+    console.log("Duplicating invitation:", invitationId);
   };
 
   const handleShareInvitation = (invitationId: string) => {
-    console.log('Sharing invitation:', invitationId);
+    console.log("Sharing invitation:", invitationId);
   };
 
   return (
@@ -304,8 +254,12 @@ export const Invitations: React.FC = () => {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold text-[#16232A] mb-2">Invitations</h1>
-            <p className="text-[#16232A]/70">Create and manage event invitations across all your events</p>
+            <h1 className="text-3xl font-bold text-[#16232A] mb-2">
+              Invitations
+            </h1>
+            <p className="text-[#16232A]/70">
+              Create and manage event invitations across all your events
+            </p>
           </div>
           <button
             onClick={handleCreateInvitation}
@@ -375,7 +329,9 @@ export const Invitations: React.FC = () => {
               </div>
             </div>
             <p className="text-sm text-[#16232A]/60 mb-1">Total Recipients</p>
-            <p className="text-2xl font-bold text-[#16232A]">{stats.totalSentTo}</p>
+            <p className="text-2xl font-bold text-[#16232A]">
+              {stats.totalSentTo}
+            </p>
           </motion.div>
         </div>
 
@@ -399,7 +355,9 @@ export const Invitations: React.FC = () => {
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as InvitationStatus | 'all')}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as InvitationStatus | "all")
+              }
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5B04] focus:border-transparent outline-none bg-white"
             >
               <option value="all">All Status</option>
@@ -410,7 +368,9 @@ export const Invitations: React.FC = () => {
             </select>
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as InvitationType | 'all')}
+              onChange={(e) =>
+                setTypeFilter(e.target.value as InvitationType | "all")
+              }
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5B04] focus:border-transparent outline-none bg-white"
             >
               <option value="all">All Types</option>
@@ -430,21 +390,25 @@ export const Invitations: React.FC = () => {
           {filteredInvitations.length === 0 ? (
             <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
               <Mail className="h-16 w-16 text-[#16232A]/20 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-[#16232A] mb-2">No invitations found</h3>
+              <h3 className="text-xl font-bold text-[#16232A] mb-2">
+                No invitations found
+              </h3>
               <p className="text-[#16232A]/60 mb-6">
-                {searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'Create your first invitation to get started'}
+                {searchQuery || statusFilter !== "all" || typeFilter !== "all"
+                  ? "Try adjusting your filters"
+                  : "Create your first invitation to get started"}
               </p>
-              {!searchQuery && statusFilter === 'all' && typeFilter === 'all' && (
-                <button
-                  onClick={handleCreateInvitation}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white rounded-lg transition-colors font-medium"
-                >
-                  <Plus className="h-5 w-5" />
-                  Create Invitation
-                </button>
-              )}
+              {!searchQuery &&
+                statusFilter === "all" &&
+                typeFilter === "all" && (
+                  <button
+                    onClick={handleCreateInvitation}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white rounded-lg transition-colors font-medium"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Create Invitation
+                  </button>
+                )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -457,22 +421,29 @@ export const Invitations: React.FC = () => {
                   className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all"
                 >
                   {/* Thumbnail */}
-                  <div 
+                  <div
                     className="h-40 flex items-center justify-center relative"
                     style={{ backgroundColor: invitation.thumbnailColor }}
                   >
                     <Mail className="h-16 w-16 text-white/30" />
-                    <span className={`absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border bg-white ${getStatusColor(invitation.status)}`}>
+                    <span
+                      className={`absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border bg-white ${getStatusColor(invitation.status)}`}
+                    >
                       {getStatusIcon(invitation.status)}
-                      {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
+                      {invitation.status.charAt(0).toUpperCase() +
+                        invitation.status.slice(1)}
                     </span>
                   </div>
 
                   {/* Content */}
                   <div className="p-4">
                     <div className="mb-3">
-                      <h3 className="font-bold text-[#16232A] mb-1">{invitation.title}</h3>
-                      <p className="text-sm text-[#16232A]/70">{invitation.eventName}</p>
+                      <h3 className="font-bold text-[#16232A] mb-1">
+                        {invitation.title}
+                      </h3>
+                      <p className="text-sm text-[#16232A]/70">
+                        {invitation.eventName}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md">
                           {getTypeLabel(invitation.type)}
@@ -485,26 +456,34 @@ export const Invitations: React.FC = () => {
                     </div>
 
                     {/* Stats */}
-                    {invitation.status !== 'draft' && (
+                    {invitation.status !== "draft" && (
                       <div className="grid grid-cols-3 gap-2 mb-4 py-3 border-t border-gray-200">
                         <div className="text-center">
                           <p className="text-xs text-[#16232A]/50 mb-1">Sent</p>
-                          <p className="text-sm font-bold text-[#16232A]">{invitation.sentTo}</p>
+                          <p className="text-sm font-bold text-[#16232A]">
+                            {invitation.sentTo}
+                          </p>
                         </div>
                         <div className="text-center border-l border-gray-200">
-                          <p className="text-xs text-[#16232A]/50 mb-1">Opened</p>
-                          <p className="text-sm font-bold text-[#16232A]">{invitation.opened}</p>
+                          <p className="text-xs text-[#16232A]/50 mb-1">
+                            Opened
+                          </p>
+                          <p className="text-sm font-bold text-[#16232A]">
+                            {invitation.opened}
+                          </p>
                         </div>
                         <div className="text-center border-l border-gray-200">
                           <p className="text-xs text-[#16232A]/50 mb-1">RSVP</p>
-                          <p className="text-sm font-bold text-[#16232A]">{invitation.responded}</p>
+                          <p className="text-sm font-bold text-[#16232A]">
+                            {invitation.responded}
+                          </p>
                         </div>
                       </div>
                     )}
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                      {invitation.status === 'draft' ? (
+                      {invitation.status === "draft" ? (
                         <>
                           <button
                             onClick={() => handleEditInvitation(invitation.id)}
@@ -564,8 +543,10 @@ export const Invitations: React.FC = () => {
 
       {/* Confirmation Modals */}
       <ConfirmationModal
-        isOpen={confirmModal.isOpen && confirmModal.type === 'delete'}
-        onClose={() => setConfirmModal({ isOpen: false, type: null, invitationId: null })}
+        isOpen={confirmModal.isOpen && confirmModal.type === "delete"}
+        onClose={() =>
+          setConfirmModal({ isOpen: false, type: null, invitationId: null })
+        }
         onConfirm={handleConfirmAction}
         title="Delete Invitation"
         message="Are you sure you want to delete this invitation? This action cannot be undone."
@@ -574,8 +555,10 @@ export const Invitations: React.FC = () => {
       />
 
       <ConfirmationModal
-        isOpen={confirmModal.isOpen && confirmModal.type === 'send'}
-        onClose={() => setConfirmModal({ isOpen: false, type: null, invitationId: null })}
+        isOpen={confirmModal.isOpen && confirmModal.type === "send"}
+        onClose={() =>
+          setConfirmModal({ isOpen: false, type: null, invitationId: null })
+        }
         onConfirm={handleConfirmAction}
         title="Send Invitation"
         message="This will send the invitation to all guests in the event. Are you sure you want to proceed?"

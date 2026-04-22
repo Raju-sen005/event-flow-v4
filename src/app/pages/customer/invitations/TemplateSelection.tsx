@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Eye, Check, Search, Filter, X } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
+import { ArrowLeft, Eye, Check, Search, Filter, X } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { motion, AnimatePresence } from "motion/react";
 
 interface Template {
   id: string;
@@ -19,105 +19,79 @@ export const TemplateSelection: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Filters
   const [filters, setFilters] = useState({
-    eventType: 'all',
-    style: 'all',
-    format: 'all',
+    eventType: "all",
+    style: "all",
+    format: "all",
   });
 
-  // Mock templates
-  const templates: Template[] = [
-    {
-      id: '1',
-      name: 'Elegant Floral Wedding',
-      eventType: 'wedding',
-      style: 'traditional',
-      format: 'card',
-      thumbnail: 'gradient-1',
-    },
-    {
-      id: '2',
-      name: 'Modern Minimalist',
-      eventType: 'wedding',
-      style: 'modern',
-      format: 'card',
-      thumbnail: 'gradient-2',
-    },
-    {
-      id: '3',
-      name: 'Classic Birthday Celebration',
-      eventType: 'birthday',
-      style: 'traditional',
-      format: 'card',
-      thumbnail: 'gradient-3',
-    },
-    {
-      id: '4',
-      name: 'Corporate Event Invitation',
-      eventType: 'corporate',
-      style: 'minimal',
-      format: 'card',
-      thumbnail: 'gradient-4',
-    },
-    {
-      id: '5',
-      name: 'Festive Video Invite',
-      eventType: 'wedding',
-      style: 'modern',
-      format: 'video',
-      thumbnail: 'gradient-5',
-    },
-    {
-      id: '6',
-      name: 'Garden Party Theme',
-      eventType: 'party',
-      style: 'minimal',
-      format: 'card',
-      thumbnail: 'gradient-6',
-    },
-  ];
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/templates/templates`);
+      const data = await res.json();
+
+      setTemplates(data);
+    } catch (err) {
+      console.error("Template fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filterOptions = {
     eventType: [
-      { value: 'all', label: 'All Events' },
-      { value: 'wedding', label: 'Wedding' },
-      { value: 'birthday', label: 'Birthday' },
-      { value: 'corporate', label: 'Corporate' },
-      { value: 'party', label: 'Party' },
+      { value: "all", label: "All Events" },
+      { value: "wedding", label: "Wedding" },
+      { value: "birthday", label: "Birthday" },
+      { value: "corporate", label: "Corporate" },
+      { value: "party", label: "Party" },
     ],
     style: [
-      { value: 'all', label: 'All Styles' },
-      { value: 'traditional', label: 'Traditional' },
-      { value: 'modern', label: 'Modern' },
-      { value: 'minimal', label: 'Minimal' },
+      { value: "all", label: "All Styles" },
+      { value: "traditional", label: "Traditional" },
+      { value: "modern", label: "Modern" },
+      { value: "minimal", label: "Minimal" },
     ],
     format: [
-      { value: 'all', label: 'All Formats' },
-      { value: 'card', label: 'Card' },
-      { value: 'video', label: 'Video' },
+      { value: "all", label: "All Formats" },
+      { value: "card", label: "Card" },
+      { value: "video", label: "Video" },
     ],
   };
 
   // Filter templates
   const filteredTemplates = templates.filter((template) => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesEventType = filters.eventType === 'all' || template.eventType === filters.eventType;
-    const matchesStyle = filters.style === 'all' || template.style === filters.style;
-    const matchesFormat = filters.format === 'all' || template.format === filters.format;
+    const matchesSearch = template.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesEventType =
+      filters.eventType === "all" || template.eventType === filters.eventType;
+    const matchesStyle =
+      filters.style === "all" || template.style === filters.style;
+    const matchesFormat =
+      filters.format === "all" || template.format === filters.format;
 
     return matchesSearch && matchesEventType && matchesStyle && matchesFormat;
   });
 
   const handleResetFilters = () => {
     setFilters({
-      eventType: 'all',
-      style: 'all',
-      format: 'all',
+      eventType: "all",
+      style: "all",
+      format: "all",
     });
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   const handleUseTemplate = (templateId: string) => {
@@ -125,13 +99,17 @@ export const TemplateSelection: React.FC = () => {
   };
 
   const gradients = [
-    'from-purple-400 via-pink-400 to-red-400',
-    'from-blue-400 via-cyan-400 to-teal-400',
-    'from-yellow-400 via-orange-400 to-red-400',
-    'from-green-400 via-emerald-400 to-teal-400',
-    'from-pink-400 via-purple-400 to-indigo-400',
-    'from-indigo-400 via-blue-400 to-cyan-400',
+    "from-purple-400 via-pink-400 to-red-400",
+    "from-blue-400 via-cyan-400 to-teal-400",
+    "from-yellow-400 via-orange-400 to-red-400",
+    "from-green-400 via-emerald-400 to-teal-400",
+    "from-pink-400 via-purple-400 to-indigo-400",
+    "from-indigo-400 via-blue-400 to-cyan-400",
   ];
+
+  const handleEdit = (template: any) => {
+    window.open(template.canvaUrl, "_blank");
+  };
 
   return (
     <div className="space-y-6">
@@ -145,8 +123,12 @@ export const TemplateSelection: React.FC = () => {
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-[#16232A]">Choose a Template</h1>
-            <p className="text-gray-600">Select a template to customize for your event</p>
+            <h1 className="text-2xl font-bold text-[#16232A]">
+              Choose a Template
+            </h1>
+            <p className="text-gray-600">
+              Select a template to customize for your event
+            </p>
           </div>
         </div>
       </div>
@@ -171,7 +153,9 @@ export const TemplateSelection: React.FC = () => {
           >
             <Filter className="h-4 w-4" />
             Filters
-            {(filters.eventType !== 'all' || filters.style !== 'all' || filters.format !== 'all') && (
+            {(filters.eventType !== "all" ||
+              filters.style !== "all" ||
+              filters.format !== "all") && (
               <span className="h-2 w-2 bg-[#FF5B04] rounded-full" />
             )}
           </Button>
@@ -182,18 +166,20 @@ export const TemplateSelection: React.FC = () => {
           {showFilters && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="grid md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 overflow-hidden"
             >
               {Object.entries(filterOptions).map(([key, options]) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                    {key === 'eventType' ? 'Event Type' : key}
+                    {key === "eventType" ? "Event Type" : key}
                   </label>
                   <select
                     value={filters[key as keyof typeof filters]}
-                    onChange={(e) => setFilters({ ...filters, [key]: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [key]: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5B04] focus:border-transparent"
                   >
                     {options.map((option) => (
@@ -232,55 +218,35 @@ export const TemplateSelection: React.FC = () => {
           </Button>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template, index) => (
-            <motion.div
+        // <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        //   {loading ? (
+        //     <div className="text-center py-10">Loading templates...</div>
+        //   ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {templates.map((template) => (
+            <div
               key={template.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+              className="border rounded-xl p-4 shadow-sm hover:shadow-md transition"
             >
-              {/* Thumbnail */}
-              <div className={`h-64 bg-gradient-to-br ${gradients[index % gradients.length]} flex items-center justify-center relative`}>
-                <div className="text-white text-center">
-                  <p className="text-sm font-medium opacity-80">Preview</p>
-                  <p className="text-xs opacity-60">{template.format === 'video' ? 'Video' : 'Card'}</p>
-                </div>
-              </div>
+              <img
+                src={template.thumbnail}
+                alt={template.name}
+                className="w-full h-48 object-cover rounded-lg"
+              />
 
-              {/* Content */}
-              <div className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-semibold text-[#16232A] mb-1">{template.name}</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <span className="px-2 py-1 bg-gray-100 rounded capitalize">{template.style}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded capitalize">{template.eventType}</span>
-                  </div>
-                </div>
+              <h3 className="mt-3 font-semibold text-lg">{template.name}</h3>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => setPreviewTemplate(template)}
-                    variant="outline"
-                    className="flex-1 text-sm"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview
-                  </Button>
-                  <Button
-                    onClick={() => handleUseTemplate(template.id)}
-                    className="flex-1 text-sm bg-[#FF5B04] hover:bg-[#FF5B04]/90 text-white"
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Use This
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
+              <button
+                className="mt-3 w-full bg-[#FF5B04] text-white py-2 rounded-lg"
+                onClick={() => handleEdit(template)}
+              >
+                Edit in Canva
+              </button>
+            </div>
           ))}
         </div>
+        //   )}
+        // </div>
       )}
 
       {/* Preview Modal */}
@@ -302,7 +268,9 @@ export const TemplateSelection: React.FC = () => {
             >
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-[#16232A]">{previewTemplate.name}</h3>
+                  <h3 className="text-xl font-bold text-[#16232A]">
+                    {previewTemplate.name}
+                  </h3>
                   <p className="text-sm text-gray-600">Template Preview</p>
                 </div>
                 <button
@@ -313,7 +281,9 @@ export const TemplateSelection: React.FC = () => {
                 </button>
               </div>
 
-              <div className={`h-[500px] bg-gradient-to-br ${gradients[templates.findIndex(t => t.id === previewTemplate.id) % gradients.length]} flex items-center justify-center`}>
+              <div
+                className={`h-[500px] bg-gradient-to-br ${gradients[templates.findIndex((t) => t.id === previewTemplate.id) % gradients.length]} flex items-center justify-center`}
+              >
                 <div className="text-white text-center">
                   <p className="text-2xl font-bold mb-2">Full Preview</p>
                   <p className="text-sm opacity-80">{previewTemplate.name}</p>
